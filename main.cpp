@@ -19,6 +19,8 @@
 #include <sys/time.h> // timing
 #include "matio.h"
 #include "sptrans.h"
+#include "serialTransposition.h"
+#include "utilities.h"
 
 #ifdef MKL
 #include <mkl_spblas.h>
@@ -122,10 +124,29 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 #endif
-
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Serial version
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     int *cscRowIdxA = (int *)malloc(nnzA * sizeof(int));
     int *cscColPtrA = (int *)malloc((n + 1) * sizeof(int));
     valT *cscValA = (valT *)malloc(nnzA * sizeof(valT));
+    // clear the buffers
+    std::fill_n(cscRowIdxA, nnzA, 0);
+    std::fill_n(cscValA, nnzA, 0);
+    std::fill_n(cscColPtrA, n+1, 0);
+
+    tstart = dtime();
+
+    serialTransposition<int, valT>(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, cscColPtrA, cscRowIdxA, cscValA);
+
+    print<int, valT>(m, n, nnzA, cscColPtrA, cscRowIdxA, cscValA);
+
+    tstop = dtime();
+    ttime = tstop - tstart;
+    std::cout << "serialVersion(time): " << ttime << " ms\n";
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     // clear the buffers
     std::fill_n(cscRowIdxA, nnzA, 0);
     std::fill_n(cscValA, nnzA, 0);
