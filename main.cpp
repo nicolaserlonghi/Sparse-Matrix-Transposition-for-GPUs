@@ -24,6 +24,44 @@
 
 #define valT double
 
+void clearTheBuffers(int n, int nnzA, int *cscRowIdxA, valT *cscValA, int *cscColPtrA);
+
+void trySerialVersion(
+    int  m,
+    int  n,
+    int  nnzA,
+    int  *csrRowPtrA,
+    int  *csrColIdxA,
+    valT  *csrValA,    
+    int  *cscColPtrA,
+    int  *cscRowIdxA,
+    valT  *cscValA
+);
+
+void try_sptrans_scanTrans(
+    int  m,
+    int  n,
+    int  nnzA,
+    int  *csrRowPtrA,
+    int  *csrColIdxA,
+    valT  *csrValA,    
+    int  *cscColPtrA,
+    int  *cscRowIdxA,
+    valT  *cscValA
+);
+
+void try_sptrans_mergeTrans(
+    int  m,
+    int  n,
+    int  nnzA,
+    int  *csrRowPtrA,
+    int  *csrColIdxA,
+    valT  *csrValA,    
+    int  *cscColPtrA,
+    int  *cscRowIdxA,
+    valT  *cscValA
+);
+
 int main(int argc, char **argv)
 {
     char *filename = NULL;
@@ -53,54 +91,17 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    double tstart, tstop, ttime; 
-    
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Serial version
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    double tstart, tstop, ttime;
+
     int *cscRowIdxA = (int *)malloc(nnzA * sizeof(int));
     int *cscColPtrA = (int *)malloc((n + 1) * sizeof(int));
     valT *cscValA = (valT *)malloc(nnzA * sizeof(valT));
-    // clear the buffers
-    std::fill_n(cscRowIdxA, nnzA, 0);
-    std::fill_n(cscValA, nnzA, 0);
-    std::fill_n(cscColPtrA, n+1, 0);
 
-    tstart = dtime();
+    
+    trySerialVersion(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, cscColPtrA, cscRowIdxA, cscValA);
+    try_sptrans_scanTrans(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, cscColPtrA, cscRowIdxA, cscValA);
+    try_sptrans_mergeTrans(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, cscColPtrA, cscRowIdxA, cscValA);
 
-    serialTransposition<int, valT>(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, cscColPtrA, cscRowIdxA, cscValA);
-
-    tstop = dtime();
-    ttime = tstop - tstart;
-    std::cout << "serialVersion(time): " << ttime << " ms\n";
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // clear the buffers
-    std::fill_n(cscRowIdxA, nnzA, 0);
-    std::fill_n(cscValA, nnzA, 0);
-    std::fill_n(cscColPtrA, n+1, 0);
-
-    tstart = dtime();
-
-    sptrans_scanTrans<int, valT>(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, cscRowIdxA, cscColPtrA, cscValA);
-
-    tstop = dtime();
-    ttime = tstop - tstart;
-    std::cout << "scanTrans(time): " << ttime << " ms\n";
-
-    // clear the buffers
-    std::fill_n(cscRowIdxA, nnzA, 0);
-    std::fill_n(cscValA, nnzA, 0);
-    std::fill_n(cscColPtrA, n+1, 0);
-
-    tstart = dtime();
-
-    sptrans_mergeTrans<int, valT>(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, cscRowIdxA, cscColPtrA, cscValA);
-
-    tstop = dtime();
-    ttime = tstop - tstart;
-    std::cout << "mergeTrans(time): " << ttime << " ms\n";
 
     free(csrRowPtrA); 
     free(csrColIdxA); 
@@ -108,8 +109,76 @@ int main(int argc, char **argv)
     free(cscRowIdxA);
     free(cscColPtrA);
     free(cscValA);
-#ifdef MKL
-    mkl_sparse_destroy(A);
-    mkl_sparse_destroy(AT);
-#endif
+}
+
+void clearTheBuffers(int n, int nnzA, int *cscRowIdxA, valT *cscValA, int *cscColPtrA) {
+    std::fill_n(cscRowIdxA, nnzA, 0);
+    std::fill_n(cscValA, nnzA, 0);
+    std::fill_n(cscColPtrA, n+1, 0);
+}
+
+void trySerialVersion(
+    int  m,
+    int  n,
+    int  nnzA,
+    int  *csrRowPtrA,
+    int  *csrColIdxA,
+    valT  *csrValA,    
+    int  *cscColPtrA,
+    int  *cscRowIdxA,
+    valT  *cscValA
+) {
+    clearTheBuffers(n, nnzA, cscRowIdxA, cscValA, cscColPtrA);
+
+    double tstart = dtime();
+
+    serialTransposition<int, valT>(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, cscColPtrA, cscRowIdxA, cscValA);
+
+    double tstop = dtime();
+    double ttime = tstop - tstart;
+    std::cout << "serialVersion(time): " << ttime << " ms\n";
+}
+
+void try_sptrans_scanTrans(
+    int  m,
+    int  n,
+    int  nnzA,
+    int  *csrRowPtrA,
+    int  *csrColIdxA,
+    valT  *csrValA,    
+    int  *cscColPtrA,
+    int  *cscRowIdxA,
+    valT  *cscValA
+) {
+    clearTheBuffers(n, nnzA, cscRowIdxA, cscValA, cscColPtrA);
+
+    double tstart = dtime();
+
+    sptrans_scanTrans<int, valT>(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, cscColPtrA, cscRowIdxA, cscValA);
+
+    double tstop = dtime();
+    double ttime = tstop - tstart;
+    std::cout << "scanTrans(time): " << ttime << " ms\n";
+}
+
+void try_sptrans_mergeTrans(
+    int  m,
+    int  n,
+    int  nnzA,
+    int  *csrRowPtrA,
+    int  *csrColIdxA,
+    valT  *csrValA,    
+    int  *cscColPtrA,
+    int  *cscRowIdxA,
+    valT  *cscValA
+) {
+    clearTheBuffers(n, nnzA, cscRowIdxA, cscValA, cscColPtrA);
+
+    double tstart = dtime();
+
+    sptrans_scanTrans<int, valT>(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, cscColPtrA, cscRowIdxA, cscValA);
+
+    double tstop = dtime();
+    double ttime = tstop - tstart;
+    std::cout << "mergeTrans(time): " << ttime << " ms\n";
 }
