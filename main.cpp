@@ -22,12 +22,6 @@
 #include "serialTransposition.h"
 #include "utilities.h"
 
-#ifdef MKL
-#include <mkl_spblas.h>
-#include <mkl.h>
-#include <typeinfo>
-#endif
-
 #define valT double
 
 int main(int argc, char **argv)
@@ -61,60 +55,6 @@ int main(int argc, char **argv)
 
     double tstart, tstop, ttime; 
     
-#ifdef MKL
-    int nthread;
-#pragma omp parallel
-    nthread = omp_get_num_threads();
-    mkl_set_num_threads(nthread);
-
-    sparse_index_base_t indexing = SPARSE_INDEX_BASE_ZERO;
-    sparse_status_t status = SPARSE_STATUS_SUCCESS;
-
-    valT *cscval;
-    sparse_matrix_t A, AT;
-    MKL_INT cscn, cscm, *pntrb, *pntre, *cscidx;
-
-    if(typeid(valT) == typeid(float))
-    {
-        status = mkl_sparse_s_create_csr(&A, SPARSE_INDEX_BASE_ZERO, 
-                                        (MKL_INT)m, (MKL_INT)n, (MKL_INT *)csrRowPtrA, 
-                                        (MKL_INT *)(csrRowPtrA + 1), (MKL_INT *)csrColIdxA, (float*)csrValA);
-        tstart = dtime();
-
-        status = mkl_sparse_convert_csr(A, SPARSE_OPERATION_TRANSPOSE, &AT);
-
-        tstop = dtime();
-        ttime = tstop - tstart;
-        std::cout << "MKL(time): " << ttime << " ms\n";
-        status = mkl_sparse_s_export_csr(AT, &indexing, 
-                                         &cscn, &cscm, &pntrb, &pntre, &cscidx, (float**)&cscval);
-    } else if(typeid(valT) == typeid(double))
-    {
-        status = mkl_sparse_d_create_csr(&A, SPARSE_INDEX_BASE_ZERO, 
-                                        (MKL_INT)m, (MKL_INT)n, (MKL_INT *)csrRowPtrA, 
-                                        (MKL_INT *)(csrRowPtrA + 1), (MKL_INT *)csrColIdxA, (double*)csrValA);
-        tstart = dtime();
-
-        status = mkl_sparse_convert_csr(A, SPARSE_OPERATION_TRANSPOSE, &AT);
-
-        tstop = dtime();
-        ttime = tstop - tstart;
-        std::cout << "MKL(time): " << ttime << " ms\n";
-        status = mkl_sparse_d_export_csr(AT, &indexing, 
-                                         &cscn, &cscm, &pntrb, &pntre, &cscidx, (double**)&cscval);
-    
-    }
-    if (SPARSE_STATUS_SUCCESS != status)
-    {
-        std::cout << "Failed to do MKL convert!\n" << std::endl;
-        mkl_sparse_destroy(A);
-        mkl_sparse_destroy(AT);
-        free(csrColIdxA);
-        free(csrValA);
-        free(csrRowPtrA);
-        return EXIT_FAILURE;
-    }
-#endif
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Serial version
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,11 +88,7 @@ int main(int argc, char **argv)
     tstop = dtime();
     ttime = tstop - tstart;
     std::cout << "scanTrans(time): " << ttime << " ms\n";
-#ifdef MKL
-    std::cout << "check vals: " << std::boolalpha << std::equal(cscval, cscval+nnzA, cscValA) << std::endl;
-    std::cout << "check rowIdx: " << std::boolalpha << std::equal((int*)cscidx, (int*)(cscidx+nnzA), cscRowIdxA) << std::endl;
-    std::cout << "check colPtr: " << std::boolalpha << std::equal((int*)pntrb, (int*)(pntrb+n), cscColPtrA) << std::endl;
-#endif
+
     // clear the buffers
     std::fill_n(cscRowIdxA, nnzA, 0);
     std::fill_n(cscValA, nnzA, 0);
@@ -165,11 +101,6 @@ int main(int argc, char **argv)
     tstop = dtime();
     ttime = tstop - tstart;
     std::cout << "mergeTrans(time): " << ttime << " ms\n";
-#ifdef MKL
-    std::cout << "check vals: " << std::boolalpha << std::equal(cscval, cscval+nnzA, cscValA) << std::endl;
-    std::cout << "check rowIdx: " << std::boolalpha << std::equal((int*)cscidx, (int*)(cscidx+nnzA), cscRowIdxA) << std::endl;
-    std::cout << "check colPtr: " << std::boolalpha << std::equal((int*)pntrb, (int*)(pntrb+n), cscColPtrA) << std::endl;
-#endif
 
     free(csrRowPtrA); 
     free(csrColIdxA); 

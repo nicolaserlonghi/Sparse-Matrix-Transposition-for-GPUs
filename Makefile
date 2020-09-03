@@ -24,22 +24,6 @@ endif # empty
 CXXFLAGS += $(TARGET)
 LDFLAGS  += $(TARGET)
 
-# Use default MKL path
-#CXXFLAGS += -mkl -DMKL
-#LDFLAGS  += -mkl -DMKL
-
-# Define your own MKL path
-#MKL = -DMKL
-#ifdef MKL
-#MKL_INSTALL_PATH = /home/yourname/yourmklpath
-#MKLINCLUDES = -DMKL -I$(MKL_INSTALL_PATH)/include
-#MKLLIBS = -L$(MKL_INSTALL_PATH)/lib/intel64 -mkl -lmkl_core -lmkl_intel_lp64 -lmkl_intel_thread
-##MKLLIBS = -L$(MKL_INSTALL_PATH)/lib/mic -mkl -lmkl_core -lmkl_intel_lp64 -lmkl_intel_thread
-#CXXFLAGS += $(MKLINCLUDES)
-#LDFLAGS  += $(MKLLIBS)
-#endif
-
-
 all: sptrans.out
 
 sptrans.out: main.cpp

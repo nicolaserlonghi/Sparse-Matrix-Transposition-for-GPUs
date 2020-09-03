@@ -5,7 +5,7 @@ template<typename iT>
 void printArray(
     int  m,
     iT  *array
-) {
+ ) {
     for(int i = 0; i < m; i++) {
         std::cout << array[i] << "\t";
     }
