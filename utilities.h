@@ -1,22 +1,23 @@
 #ifndef _UTILITIES_H
 #define _UTILITIES_H
 
-template<typename iT, typename vT>
-void print(
+template<typename iT>
+void printArray(
     int  m,
-    int  n,  
-    int  nnz,  
-    iT  *cscColPtr,    
-    iT  *cscRowIdx,
-    vT  *cscVal
+    iT  *array
 ) {
-    for(int i = 0; i < nnz; i++) {
-        std::cout << cscRowIdx[i] << "\t";
+    for(int i = 0; i < m; i++) {
+        std::cout << array[i] << "\t";
     }
     std::cout << std::endl;
-    for(int i = 0; i < nnz; i++) {
-        std::cout << cscVal[i] << "\t";
-    }
-    std::cout << std::endl;
+}
+
+double dtime()  // milliseconds
+{
+    double tseconds = 0.0;
+    struct timeval mytime;
+    gettimeofday(&mytime, (struct timezone*)0);
+    tseconds = (double)(mytime.tv_sec + mytime.tv_usec*1.0e-6);
+    return (tseconds*1.0e3);
 }
 #endif

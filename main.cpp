@@ -30,15 +30,6 @@
 
 #define valT double
 
-double dtime()  // milliseconds
-{
-    double tseconds = 0.0;
-    struct timeval mytime;
-    gettimeofday(&mytime, (struct timezone*)0);
-    tseconds = (double)(mytime.tv_sec + mytime.tv_usec*1.0e-6);
-    return (tseconds*1.0e3);
-}
-
 int main(int argc, char **argv)
 {
     char *filename = NULL;
@@ -138,8 +129,6 @@ int main(int argc, char **argv)
     tstart = dtime();
 
     serialTransposition<int, valT>(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, cscColPtrA, cscRowIdxA, cscValA);
-
-    print<int, valT>(m, n, nnzA, cscColPtrA, cscRowIdxA, cscValA);
 
     tstop = dtime();
     ttime = tstop - tstart;

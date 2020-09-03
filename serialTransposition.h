@@ -9,7 +9,7 @@ void serialTransposition(
     iT  *csrRowPtr,
     iT  *csrColIdx,
     vT  *csrVal,    
-    iT  *cscColPtr,    
+    iT  *cscColPtr,
     iT  *cscRowIdx,
     vT  *cscVal
 ) {
