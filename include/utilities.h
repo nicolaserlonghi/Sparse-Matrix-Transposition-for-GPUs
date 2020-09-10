@@ -1,6 +1,9 @@
 #ifndef _UTILITIES_H
 #define _UTILITIES_H
 
+#include <iostream>
+#include <sys/time.h>
+
 /**
  * @brief: stampa il contenuto di un array in riga
  * @param: m: la dimensione dell'array

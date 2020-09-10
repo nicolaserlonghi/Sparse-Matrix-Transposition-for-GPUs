@@ -1,3 +1,4 @@
+rm -rf ./bin
 make
 make install
 make clean

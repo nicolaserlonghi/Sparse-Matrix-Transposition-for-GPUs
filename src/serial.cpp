@@ -1,4 +1,5 @@
 #include <serial.h>
+#include <utilities.h>
 
 void serial(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal, int *cscColPtr, int *cscRowIdx, double *cscVal) {
     int *curr = new int[n]();

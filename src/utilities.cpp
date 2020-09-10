@@ -1,8 +1,5 @@
-#include <iostream>
-#include <sys/time.h>
-
-#include <matio.h>
 #include <utilities.h>
+#include <matio.h>
 
 void printArray(int  m, int  *array) {
     for(int i = 0; i < m; i++) {
