@@ -1,15 +1,12 @@
 #ifndef _UTILITIES_H
 #define _UTILITIES_H
 
-#define valT double
-
 /**
  * @brief: stampa il contenuto di un array in riga
  * @param: m: la dimensione dell'array
  * @param: array: il puntatore all'array da stampare
  */
-template<typename iT>
-void printArray(int  m, iT  *array);
+void printArray(int  m, int  *array);
 
 /**
  * @brief: calcola l'istante di tempo in millisecondi
@@ -35,7 +32,7 @@ char* detectFile(int argc, char* argv);
  * @param: csrColIdx: array di dimensione nnz contenente l'indice di colonna di ogni elemento diverso da zero
  * @param: csrVal: array di dimensione nnz contenente gli elementi diversi da zero
  */
-void readMatrix(char *filename, int &m, int &n, int &nnz, int *&csrRowPtr, int *&csrColIdx, valT *&csrVal);
+void readMatrix(char *filename, int &m, int &n, int &nnz, int *&csrRowPtr, int *&csrColIdx, double *&csrVal);
 
 /**
  * @brief: azzera gli array della matrice trasposta
@@ -45,7 +42,7 @@ void readMatrix(char *filename, int &m, int &n, int &nnz, int *&csrRowPtr, int *
  * @param: cscVal: array di dimensione nnz contenente gli elementi diversi da zero
  * @param: cscColPtr: array di dimensione n + 1 contenente il numero accumulativo di elementi diversi da zero in ogni colonna
  */
-void clearTheBuffers(int n, int nnz, int *cscRowIdx, valT *cscVal, int *cscColPtr);
+void clearTheBuffers(int n, int nnz, int *cscRowIdx, double *cscVal, int *cscColPtr);
 
 /**
  * @brief: calcola la trasposta della matrice originale utilizzando un funzione specifica
@@ -61,6 +58,6 @@ void clearTheBuffers(int n, int nnz, int *cscRowIdx, valT *cscVal, int *cscColPt
  * @param: cscVal: array di dimensione nnz contenente gli elementi diversi da zero della matrice trasposta
  * @return: il tempo impiegato dalla funzione
  */
-double performTransposition(void (*f)(int, int, int, int*, int*, valT*, int*, int*, valT*), int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, valT *csrVal, int *cscColPtr, int *cscRowIdx, valT *cscVal);
+double performTransposition(void (*f)(int, int, int, int*, int*, double*, int*, int*, double*), int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal, int *cscColPtr, int *cscRowIdx, double *cscVal);
 
 #endif

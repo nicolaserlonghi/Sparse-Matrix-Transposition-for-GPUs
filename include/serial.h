@@ -1,9 +1,7 @@
 #ifndef _SERIAL_H
 #define _SERIAL_H
 
-template<typename iT, typename vT>
-void serial(int m, int n, int nnz, iT *csrRowPtr, iT *csrColIdx, vT *csrVal, iT *cscColPtr, iT *cscRowIdx, vT *cscVal) {
-
+void serial(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal, int *cscColPtr, int *cscRowIdx, double *cscVal) {
     int *curr = new int[n]();
     for(int i = 0; i < m; i++) {
         for(int j = csrRowPtr[i]; j < csrRowPtr[i + 1]; j++) {
@@ -25,5 +23,6 @@ void serial(int m, int n, int nnz, iT *csrRowPtr, iT *csrColIdx, vT *csrVal, iT 
 
     free(curr);
 }
+
 
 #endif

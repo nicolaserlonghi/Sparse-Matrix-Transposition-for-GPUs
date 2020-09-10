@@ -1,8 +1,8 @@
 PROJECT := build/sparse_matrix_transpose
 SRC := $(wildcard src/*.cpp)
 OBJ := $(SRC:src/%.cpp=build/%.o)
-LD := icpc
-CXX := icpc
+LD := g++
+CXX := g++
 CXXFLAGS = -std=c++11 -w -O3
 CFLAGS := -I include/ -c
 
