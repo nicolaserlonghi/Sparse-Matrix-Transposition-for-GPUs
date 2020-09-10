@@ -9,7 +9,7 @@
  * @param: m: la dimensione dell'array
  * @param: array: il puntatore all'array da stampare
  */
-void printArray(int  m, int  *array);
+void printArray(int  m, double  *array);
 
 /**
  * @brief: calcola l'istante di tempo in millisecondi

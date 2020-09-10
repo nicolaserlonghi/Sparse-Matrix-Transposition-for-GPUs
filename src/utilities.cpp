@@ -1,7 +1,7 @@
 #include <utilities.h>
 #include <matio.h>
 
-void printArray(int  m, int  *array) {
+void printArray(int  m, double  *array) {
     for(int i = 0; i < m; i++) {
         std::cout << array[i] << "\t";
     }

@@ -2,6 +2,7 @@
 
 #include <utilities.h>
 #include <serial.h>
+#include <scanTrans.h>
 
 int main(int argc, char **argv) {
 
@@ -22,6 +23,11 @@ int main(int argc, char **argv) {
     // Esecuzione dell'algoritmo di trasposizione seriale
     double serialTime = performTransposition(serial, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
     std::cout << "Serial Transposition: " << serialTime << " ms\n";
+
+        
+    // Esecuzione dell'algoritmo di trasposizione seriale
+    double scanTransTime = performTransposition(scanTrans, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
+    std::cout << "scanTrans Transposition: " << scanTransTime << " ms\n";
 
     free(csrRowPtr); 
     free(csrColIdx); 

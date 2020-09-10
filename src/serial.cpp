@@ -9,6 +9,7 @@ void serial(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVa
         }
     }
     
+    // prefix sum
     for(int i = 1; i < n + 1; i++) {
         cscColPtr[i] += cscColPtr[i - 1];
     }
@@ -20,6 +21,8 @@ void serial(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVa
             cscVal[loc] = csrVal[j];
         }
     }
+
+    printArray(nnz, cscVal);
 
     free(curr);
 }
