@@ -1,33 +1,30 @@
-CXX = icpc
-CXXFLAGS = -std=c++11 -Wall -Wextra -O3 -qopenmp
-LDFLAGS  = -std=c++11 -qopenmp
+PROJECT := build/sparse_matrix_transpose
+SRC := $(wildcard src/*.cpp)
+OBJ := $(SRC:src/%.cpp=build/%.o)
+LD := icpc
+CXX := icpc
+CXXFLAGS = -std=c++11 -w -O3
+CFLAGS := -I include/ -c
 
-TARGET =
-ifdef ISA
-ifeq ($(ISA),mic)
-    TARGET = -mmic
-else
-ifeq ($(ISA),avx)
-    TARGET = -xavx
-else
-ifeq ($(ISA),avx2)
-    TARGET = -xCORE-AVX2
-else
-    TARGET = -xavx
-endif # avx2
-endif # avx
-endif # mic
-else
-    TARGET = -xCORE-AVX2
-endif # empty
+all: $(PROJECT)
 
-CXXFLAGS += $(TARGET)
-LDFLAGS  += $(TARGET)
+$(PROJECT): $(OBJ)
+	$(LD) $(OBJ) -o $(PROJECT)
 
-all: sptrans.out
+build/%.o: src/%.cpp
+	mkdir -p build
+	$(CXX) $(CXXFLAGS) $(CFLAGS) $< -o $@
 
-sptrans.out: main.cpp
-	$(CXX) ${CXXFLAGS} $(LDFLAGS) $^ -o $@	-isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+install:
+	mkdir -p bin
+	cp $(PROJECT) bin/
+
+help:
+	@echo all: compiles all files
+	@echo install: installs application at right place
+	@echo clean: delets everything except source file
 
 clean:
-	rm -rf sptrans.out
+	rm $(OBJ) $(PROJECT)
+	
+.PHONY: all clean install help
