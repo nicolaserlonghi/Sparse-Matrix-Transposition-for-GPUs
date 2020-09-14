@@ -1,19 +1,23 @@
 PROJECT := build/sparse_matrix_transpose
-SRC := $(wildcard src/*.cpp)
-OBJ := $(SRC:src/%.cpp=build/%.o)
-LD := g++
+SRC := $(wildcard src/*.cu)
+OBJ := $(SRC:src/%.cu=build/%.o)
 CXX := g++
-CXXFLAGS = -std=c++11 -w -O3
+NVCC := nvcc
+# Qui non serve -lcusparse
+CXXFLAGS = -std=c++11 -w -O3 -arch=sm_62
+NVCCFAGS = -lcusparse
 CFLAGS := -I include/ -c
 
 all: $(PROJECT)
 
+# Qui serve -lcusparse altrimenti non funziona. PERCHE'??
 $(PROJECT): $(OBJ)
-	$(LD) $(OBJ) -o $(PROJECT)
+	$(NVCC) $(NVCCFAGS) $(OBJ) -o $(PROJECT)
 
-build/%.o: src/%.cpp
+# Qui non serve -lcusparse
+build/%.o: src/%.cu
 	mkdir -p build
-	$(CXX) $(CXXFLAGS) $(CFLAGS) $< -o $@
+	$(NVCC) $(CXXFLAGS) $(CFLAGS) $< -o $@
 
 install:
 	mkdir -p bin

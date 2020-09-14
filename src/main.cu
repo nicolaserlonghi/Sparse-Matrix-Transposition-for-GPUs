@@ -3,6 +3,7 @@
 #include <utilities.h>
 #include <serial.h>
 #include <scanTrans.h>
+#include <testNvidiaVersion.h>
 
 int main(int argc, char **argv) {
 
@@ -26,8 +27,21 @@ int main(int argc, char **argv) {
 
         
     // Esecuzione dell'algoritmo di trasposizione seriale
-    double scanTransTime = performTransposition(scanTrans, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
-    std::cout << "scanTrans Transposition: " << scanTransTime << " ms\n";
+    // double scanTransTime = performTransposition(scanTrans, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
+    // std::cout << "scanTrans Transposition: " << scanTransTime << " ms\n";
+
+
+    // TEST NVIDIA
+    int *csrRowPtrB;
+    int *csrColIdxB;
+    double *csrValB;
+
+    csrRowPtrB = (int *)malloc((m+1) * sizeof(int));
+    csrColIdxB = (int *)malloc(nnz * sizeof(int));
+    memset(csrRowPtrB, 0, (m+1) * sizeof(int));
+    csrValB    = (double *)malloc(nnz * sizeof(double));
+    int cudaTime = cuda_sptrans(m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscRowIdx, cscColPtr, cscVal, csrColIdxB, csrRowPtrB, csrValB);
+    std::cout << "cuda Transposition: " << cudaTime << " ms\n";
 
     free(csrRowPtr); 
     free(csrColIdx); 
