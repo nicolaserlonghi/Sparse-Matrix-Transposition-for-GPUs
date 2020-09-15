@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
     // TEST NVIDIA
 
-    int cudaTime = cuda_sptrans(m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscRowIdx, cscColPtr, cscVal);
+    int cudaTime = performTransposition(cuda_sptrans, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
     std::cout << "cuda Transposition: " << cudaTime << " ms\n";
 
     free(csrRowPtr); 

@@ -2,16 +2,16 @@
 
 using namespace std;
 
-int cuda_sptrans(
-    const int         m,
-    const int         n,
-    const int         nnz,
-    const int        *csrRowPtr,
-    const int        *csrColIdx,
-    const double     *csrVal,
-    int              *cscRowIdx,
-    int              *cscColPtr,
-    double           *cscVal
+void cuda_sptrans(
+    int         m,
+    int         n,
+    int         nnz,
+    int        *csrRowPtr,
+    int        *csrColIdx,
+    double     *csrVal,
+    int        *cscColPtr,
+    int        *cscRowIdx,
+    double     *cscVal
 ) {
     cudaSetDevice(0);
     
@@ -136,6 +136,5 @@ int cuda_sptrans(
     cudaFree(d_cscColPtr);
     cudaFree(d_cscRowIdx);
     cudaFree(d_cscVal);
-    
-    return 0;
+
 }
