@@ -1,8 +1,8 @@
 #include <serial.h>
 #include <utilities.h>
 #include <Timer.cuh>
-using namespace timer;
 
+using namespace timer;
 
 void serial(
     int     m,
@@ -41,8 +41,6 @@ void serial(
 
     TM_host.stop();
     TM_host.print("Serial Sparse Matrix Transpostion: ");
-
-    printArray(nnz, cscVal);
 
     free(curr);
 }

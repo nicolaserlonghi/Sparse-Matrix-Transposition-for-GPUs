@@ -5,10 +5,9 @@
 
 using namespace timer;
 
-using namespace std;
+const int BLOCK_SIZE_X = 8;
 
-
-void cuda_sptrans(
+void nvidia(
     int     m,
     int     n,
     int     nnz,
@@ -19,6 +18,7 @@ void cuda_sptrans(
     int     *cscRowIdx,
     double  *cscVal
 ) {
+
     Timer<DEVICE> TM_device;
     cudaSetDevice(0);
     
@@ -41,9 +41,9 @@ void cuda_sptrans(
     SAFE_CALL(cudaMallocManaged((void **)&d_csrColIdx, nnz   * sizeof(int)));
     SAFE_CALL(cudaMallocManaged((void **)&d_csrVal,    nnz   * sizeof(double)));
 
-    SAFE_CALL(cudaMemcpy(d_csrRowPtr, csrRowPtr, (m+1) * sizeof(int),   cudaMemcpyHostToDevice));
-    SAFE_CALL(cudaMemcpy(d_csrColIdx, csrColIdx, nnz  * sizeof(int),    cudaMemcpyHostToDevice));
-    SAFE_CALL(cudaMemcpy(d_csrVal,    csrVal,    nnz  * sizeof(double), cudaMemcpyHostToDevice));
+    SAFE_CALL(cudaMemcpy(d_csrRowPtr, csrRowPtr, (m+1) * sizeof(int),    cudaMemcpyHostToDevice));
+    SAFE_CALL(cudaMemcpy(d_csrColIdx, csrColIdx, nnz   * sizeof(int),    cudaMemcpyHostToDevice));
+    SAFE_CALL(cudaMemcpy(d_csrVal,    csrVal,    nnz   * sizeof(double), cudaMemcpyHostToDevice));
 
     // Matrix csc     
     SAFE_CALL(cudaMallocManaged((void **)&d_cscColPtr, (n+1) * sizeof(int)));
@@ -82,8 +82,6 @@ void cuda_sptrans(
                                     CUSPARSE_CSR2CSC_ALG1,
                                     &P_bufferSize
                                 );
-
-    printf("P_bufferSize  = %lld \n", (long long)P_bufferSize);
 
     if (NULL != p_buffer) { 
         SAFE_CALL(cudaFree(p_buffer));

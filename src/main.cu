@@ -44,15 +44,10 @@ int main(int argc, char **argv) {
                         cscRowIdx,
                         cscVal
                     );
-        
-    // Esecuzione dell'algoritmo di trasposizione scanTrans inventato (è seriale invece di essere parallelo)
-    // double scanTransTime = performTransposition(scanTrans, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
-    // std::cout << "scanTrans Transposition: " << scanTransTime << " ms\n";
 
-
-    // Esecuzione dell'algoritmo di trasposizione parallela GPU versione Nvidia
+    // Esecuzione dell'algoritmo di trasposizione versione Nvidia
     performTransposition(
-                        cuda_sptrans,
+                        nvidia,
                         m,
                         n,
                         nnz,
