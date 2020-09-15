@@ -12,14 +12,14 @@ int main(int argc, char **argv) {
 
     int     m, n, nnz;
     int     *csrRowPtr, *csrColIdx;
-    double    *csrVal;
+    double  *csrVal;
 
     // Recupero della matrice
     readMatrix(filename, m, n, nnz, csrRowPtr, csrColIdx, csrVal);
 
     int     *cscRowIdx  = (int *)malloc(nnz * sizeof(int));
     int     *cscColPtr  = (int *)malloc((n + 1) * sizeof(int));
-    double    *cscVal     = (double *)malloc(nnz * sizeof(double));
+    double  *cscVal     = (double *)malloc(nnz * sizeof(double));
     
     // Esecuzione dell'algoritmo di trasposizione seriale
     double serialTime = performTransposition(serial, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
@@ -32,14 +32,11 @@ int main(int argc, char **argv) {
 
 
     // TEST NVIDIA
-    int *csrRowPtrB;
-    int *csrColIdxB;
-    double *csrValB;
-
-    csrRowPtrB = (int *)malloc((m+1) * sizeof(int));
-    csrColIdxB = (int *)malloc(nnz * sizeof(int));
+    int     *csrRowPtrB = (int *)malloc((m+1) * sizeof(int));
+    int     *csrColIdxB = (int *)malloc(nnz * sizeof(int));
+    double  *csrValB    = (double *)malloc(nnz * sizeof(double));
     memset(csrRowPtrB, 0, (m+1) * sizeof(int));
-    csrValB    = (double *)malloc(nnz * sizeof(double));
+
     int cudaTime = cuda_sptrans(m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscRowIdx, cscColPtr, cscVal, csrColIdxB, csrRowPtrB, csrValB);
     std::cout << "cuda Transposition: " << cudaTime << " ms\n";
 
