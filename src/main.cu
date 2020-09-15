@@ -3,7 +3,7 @@
 #include <utilities.h>
 #include <serial.h>
 #include <scanTrans.h>
-#include <testNvidiaVersion.h>
+#include <nvidia.h>
 
 int main(int argc, char **argv) {
 

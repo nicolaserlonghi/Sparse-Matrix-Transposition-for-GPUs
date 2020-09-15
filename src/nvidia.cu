@@ -1,9 +1,12 @@
-#include <cusparse_v2.h>
+#include <nvidia.h>
+#include <utilities.h>
 #include <Timer.cuh>
 #include <CheckError.cuh>
+
 using namespace timer;
 
 using namespace std;
+
 
 void cuda_sptrans(
     int         m,
