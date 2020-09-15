@@ -2,7 +2,6 @@
 #define _UTILITIES_H
 
 #include <iostream>
-#include <sys/time.h>
 
 /**
  * @brief: stampa il contenuto di un array in riga
@@ -11,11 +10,6 @@
  */
 void printArray(int  m, double  *array);
 
-/**
- * @brief: calcola l'istante di tempo in millisecondi
- * @return: tempo in millisecondi
- */
-double dtime();
 
 /**
  * @brief: identifica il nome del file da aprire
@@ -59,8 +53,7 @@ void clearTheBuffers(int n, int nnz, int *cscRowIdx, double *cscVal, int *cscCol
  * @param: cscColPtr: array di dimensione n + 1 contenente il numero accumulativo di elementi diversi da zero in ogni colonna della matrice trasposta
  * @param: cscRowIdx: array di dimensione nnz contenente l'indice di riga di ogni elemento diverso da zero della matrice trasposta
  * @param: cscVal: array di dimensione nnz contenente gli elementi diversi da zero della matrice trasposta
- * @return: il tempo impiegato dalla funzione
  */
-double performTransposition(void (*f)(int, int, int, int*, int*, double*, int*, int*, double*), int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal, int *cscColPtr, int *cscRowIdx, double *cscVal);
+void performTransposition(void (*f)(int, int, int, int*, int*, double*, int*, int*, double*), int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal, int *cscColPtr, int *cscRowIdx, double *cscVal);
 
 #endif

@@ -22,9 +22,7 @@ int main(int argc, char **argv) {
     double  *cscVal     = (double *)malloc(nnz * sizeof(double));
     
     // Esecuzione dell'algoritmo di trasposizione seriale
-    double serialTime = performTransposition(serial, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
-    std::cout << "Serial Transposition: " << serialTime << " ms\n";
-
+    performTransposition(serial, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
         
     // Esecuzione dell'algoritmo di trasposizione seriale
     // double scanTransTime = performTransposition(scanTrans, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
@@ -33,8 +31,7 @@ int main(int argc, char **argv) {
 
     // TEST NVIDIA
 
-    int cudaTime = performTransposition(cuda_sptrans, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
-    std::cout << "cuda Transposition: " << cudaTime << " ms\n";
+    performTransposition(cuda_sptrans, m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscColPtr, cscRowIdx, cscVal);
 
     free(csrRowPtr); 
     free(csrColIdx); 

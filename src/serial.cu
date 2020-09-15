@@ -1,7 +1,14 @@
 #include <serial.h>
 #include <utilities.h>
+#include <Timer.cuh>
+using namespace timer;
+
 
 void serial(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal, int *cscColPtr, int *cscRowIdx, double *cscVal) {
+
+    Timer<HOST> TM_host;
+
+    TM_host.start();
     int *curr = new int[n]();
     for(int i = 0; i < m; i++) {
         for(int j = csrRowPtr[i]; j < csrRowPtr[i + 1]; j++) {
@@ -21,6 +28,9 @@ void serial(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVa
             cscVal[loc] = csrVal[j];
         }
     }
+
+    TM_host.stop();
+    TM_host.print("Serial Sparse Matrix Transpostion: ");
 
     printArray(nnz, cscVal);
 
