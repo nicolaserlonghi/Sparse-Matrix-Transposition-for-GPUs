@@ -11,10 +11,7 @@ int cuda_sptrans(
     const double     *csrVal,
     int              *cscRowIdx,
     int              *cscColPtr,
-    double           *cscVal,
-    const int        *cscRowIdx_ref,
-    const int        *cscColPtr_ref,
-    const double     *cscVal_ref
+    double           *cscVal
 ) {
     cudaSetDevice(0);
     
@@ -123,45 +120,11 @@ int cuda_sptrans(
     gettimeofday(&t4, NULL);
     time_cuda_trans = (t4.tv_sec - t3.tv_sec) * 1000.0 + (t4.tv_usec - t3.tv_usec) / 1000.0;
     
-    printf("cuSparse trans used %4.2f ms,\n",time_cuda_trans);       
+    cout << "cuSparse trans used " << time_cuda_trans << " ms" << endl;
    
     cudaMemcpy(cscColPtr, d_cscColPtr, (n+1) * sizeof(int),   cudaMemcpyDeviceToHost);
     cudaMemcpy(cscRowIdx, d_cscRowIdx, nnz  * sizeof(int),   cudaMemcpyDeviceToHost);
     cudaMemcpy(cscVal, d_cscVal,   nnz  * sizeof(double),   cudaMemcpyDeviceToHost);
-
-    // validate value
-
-    double accuracy = 1e-4;
-    double ref = 0.0;
-    double res = 0.0;
-
-    for (int i = 0; i < nnz; i++) {
-        ref += abs(cscVal[i]);
-        res += abs(cscVal_ref[i] - cscVal[i]);
-        if (cscVal_ref[i] != cscVal[i]) printf ("%i, [%d, %d] cscValA = %f, cscValB = %f\n", i, cscRowIdx_ref[i],  cscRowIdx[i], cscVal_ref[i], cscVal[i]);
-    }
-    res = ref == 0 ? res : res / ref;
-
-    if (res < accuracy)
-        printf("sptrans value test on single GPU: passed! |x-xref|/|xref| = %8.2e\n", res);
-    else
-        printf("sptrans value test on single GPU: _NOT_ passed! |x-xref|/|xref| = %8.2e\n", res);
-
-
-    ref = 0.0;
-    res = 0.0;
- 
-	for (int i = 0; i < n+1; i++) {
-        ref += abs(cscColPtr[i]);
-        res += abs(cscColPtr_ref[i] - cscColPtr[i]);
-        if (cscColPtr_ref[i] != cscColPtr[i]) printf ("%i, cscColPtr_ref = %i, cscColPtr = %i\n", i, cscColPtr_ref[i], cscColPtr[i]);
-    }
-    res = ref == 0 ? res : res / ref;
-
-    if (res < accuracy)
-        printf("sptrans pointer test on single GPU: pasted! |x-xref|/|xref| = %8.2e\n", res);
-    else
-        printf("sptrans pointer test on single GPU: _NOT_ passed! |x-xref|/|xref| = %8.2e\n", res);
 
     // step 6: free resources
 

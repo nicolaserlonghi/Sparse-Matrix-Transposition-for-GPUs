@@ -32,12 +32,8 @@ int main(int argc, char **argv) {
 
 
     // TEST NVIDIA
-    int     *csrRowPtrB = (int *)malloc((m+1) * sizeof(int));
-    int     *csrColIdxB = (int *)malloc(nnz * sizeof(int));
-    double  *csrValB    = (double *)malloc(nnz * sizeof(double));
-    memset(csrRowPtrB, 0, (m+1) * sizeof(int));
 
-    int cudaTime = cuda_sptrans(m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscRowIdx, cscColPtr, cscVal, csrColIdxB, csrRowPtrB, csrValB);
+    int cudaTime = cuda_sptrans(m, n, nnz, csrRowPtr, csrColIdx, csrVal, cscRowIdx, cscColPtr, cscVal);
     std::cout << "cuda Transposition: " << cudaTime << " ms\n";
 
     free(csrRowPtr); 
