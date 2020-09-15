@@ -1,33 +1,34 @@
-CXX = icpc
-CXXFLAGS = -std=c++11 -Wall -Wextra -O3 -qopenmp
-LDFLAGS  = -std=c++11 -qopenmp
+PROJECT := build/sparse_matrix_transpose
+SRC := $(wildcard src/*.cu)
+OBJ := $(SRC:src/%.cu=build/%.o)
+CXX := g++
+NVCC := nvcc
+# Qui non serve -lcusparse
+CXXFLAGS = -std=c++11 -w -O3 -arch=sm_62
+NVCCFAGS = -lcusparse
+CFLAGS := -I include/ -c
 
-TARGET =
-ifdef ISA
-ifeq ($(ISA),mic)
-    TARGET = -mmic
-else
-ifeq ($(ISA),avx)
-    TARGET = -xavx
-else
-ifeq ($(ISA),avx2)
-    TARGET = -xCORE-AVX2
-else
-    TARGET = -xavx
-endif # avx2
-endif # avx
-endif # mic
-else
-    TARGET = -xCORE-AVX2
-endif # empty
+all: $(PROJECT)
 
-CXXFLAGS += $(TARGET)
-LDFLAGS  += $(TARGET)
+# Qui serve -lcusparse altrimenti non funziona. PERCHE'??
+$(PROJECT): $(OBJ)
+	$(NVCC) $(NVCCFAGS) $(OBJ) -o $(PROJECT)
 
-all: sptrans.out
+# Qui non serve -lcusparse
+build/%.o: src/%.cu
+	mkdir -p build
+	$(NVCC) $(CXXFLAGS) $(CFLAGS) $< -o $@
 
-sptrans.out: main.cpp
-	$(CXX) ${CXXFLAGS} $(LDFLAGS) $^ -o $@	-isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+install:
+	mkdir -p bin
+	cp $(PROJECT) bin/
+
+help:
+	@echo all: compiles all files
+	@echo install: installs application at right place
+	@echo clean: delets everything except source file
 
 clean:
-	rm -rf sptrans.out
+	rm $(OBJ) $(PROJECT)
+	
+.PHONY: all clean install help

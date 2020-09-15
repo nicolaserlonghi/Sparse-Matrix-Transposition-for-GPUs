@@ -1,19 +1,7 @@
-#ifndef _SERIALTRANSPOSITION_H
-#define _SERIALTRANSPOSITION_H
+#include <serial.h>
+#include <utilities.h>
 
-template<typename iT, typename vT>
-void serialTransposition(
-    int  m,
-    int  n,
-    int  nnz,
-    iT  *csrRowPtr,
-    iT  *csrColIdx,
-    vT  *csrVal,    
-    iT  *cscColPtr,
-    iT  *cscRowIdx,
-    vT  *cscVal
-) {
-    // Construct an array of size n to record current available position in each column
+void serial(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal, int *cscColPtr, int *cscRowIdx, double *cscVal) {
     int *curr = new int[n]();
     for(int i = 0; i < m; i++) {
         for(int j = csrRowPtr[i]; j < csrRowPtr[i + 1]; j++) {
@@ -21,7 +9,7 @@ void serialTransposition(
         }
     }
     
-    // Prefix Sum
+    // prefix sum
     for(int i = 1; i < n + 1; i++) {
         cscColPtr[i] += cscColPtr[i - 1];
     }
@@ -34,7 +22,7 @@ void serialTransposition(
         }
     }
 
+    printArray(nnz, cscVal);
+
     free(curr);
 }
-
-#endif
