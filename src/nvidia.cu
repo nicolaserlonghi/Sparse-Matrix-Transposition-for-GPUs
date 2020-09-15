@@ -5,8 +5,6 @@
 
 using namespace timer;
 
-const int BLOCK_SIZE_X = 8;
-
 void nvidia(
     int     m,
     int     n,
@@ -58,7 +56,7 @@ void nvidia(
     
     // setup buffersize
 
-    TM_device.start();
+    
 
     // Qui andrebbero i DimGrid e DimBlock
 
@@ -89,6 +87,8 @@ void nvidia(
 
     SAFE_CALL(cudaMalloc((void**)&p_buffer, P_bufferSize));
     
+    TM_device.start();
+
     cusparseCsr2cscEx2(
                         handle,
                         m,
