@@ -4,7 +4,17 @@
 using namespace timer;
 
 
-void serial(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal, int *cscColPtr, int *cscRowIdx, double *cscVal) {
+void serial(
+    int     m,
+    int     n,
+    int     nnz,
+    int     *csrRowPtr,
+    int     *csrColIdx,
+    double  *csrVal,
+    int     *cscColPtr,
+    int     *cscRowIdx,
+    double  *cscVal
+) {
 
     Timer<HOST> TM_host;
 

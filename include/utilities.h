@@ -8,7 +8,7 @@
  * @param: m: la dimensione dell'array
  * @param: array: il puntatore all'array da stampare
  */
-void printArray(int  m, double  *array);
+void printArray(int m, double *array);
 
 
 /**
@@ -17,7 +17,7 @@ void printArray(int  m, double  *array);
  * @param: argv: un puntatore al nome del file se presente
  * @return: il nome del file
  */
-char* detectFile(int argc, char* argv);
+char* detectFile(int argc, char *argv);
 
 /**
  * @brief: chiama un funzione per la lettura della matrice da file
@@ -29,7 +29,15 @@ char* detectFile(int argc, char* argv);
  * @param: csrColIdx: array di dimensione nnz contenente l'indice di colonna di ogni elemento diverso da zero
  * @param: csrVal: array di dimensione nnz contenente gli elementi diversi da zero
  */
-void readMatrix(char *filename, int &m, int &n, int &nnz, int *&csrRowPtr, int *&csrColIdx, double *&csrVal);
+void readMatrix(
+    char    *filename,
+    int     &m,
+    int     &n,
+    int     &nnz,
+    int     *&csrRowPtr,
+    int     *&csrColIdx,
+    double  *&csrVal
+);
 
 /**
  * @brief: azzera gli array della matrice trasposta
@@ -39,7 +47,13 @@ void readMatrix(char *filename, int &m, int &n, int &nnz, int *&csrRowPtr, int *
  * @param: cscVal: array di dimensione nnz contenente gli elementi diversi da zero
  * @param: cscColPtr: array di dimensione n + 1 contenente il numero accumulativo di elementi diversi da zero in ogni colonna
  */
-void clearTheBuffers(int n, int nnz, int *cscRowIdx, double *cscVal, int *cscColPtr);
+void clearTheBuffers(
+    int     n,
+    int     nnz,
+    int     *cscRowIdx,
+    double  *cscVal,
+    int     *cscColPtr
+);
 
 /**
  * @brief: calcola la trasposta della matrice originale utilizzando un funzione specifica
@@ -54,6 +68,17 @@ void clearTheBuffers(int n, int nnz, int *cscRowIdx, double *cscVal, int *cscCol
  * @param: cscRowIdx: array di dimensione nnz contenente l'indice di riga di ogni elemento diverso da zero della matrice trasposta
  * @param: cscVal: array di dimensione nnz contenente gli elementi diversi da zero della matrice trasposta
  */
-void performTransposition(void (*f)(int, int, int, int*, int*, double*, int*, int*, double*), int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal, int *cscColPtr, int *cscRowIdx, double *cscVal);
+void performTransposition(
+    void    (*f)(int, int, int, int*, int*, double*, int*, int*, double*),
+    int     m,
+    int     n,
+    int     nnz,
+    int     *csrRowPtr,
+    int     *csrColIdx,
+    double  *csrVal,
+    int     *cscColPtr,
+    int     *cscRowIdx,
+    double  *cscVal
+);
 
 #endif

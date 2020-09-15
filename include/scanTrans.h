@@ -3,6 +3,16 @@
 
 #include <iostream>
 
-void scanTrans(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal, int *cscColPtr, int *cscRowIdx, double *cscVal);
+void scanTrans(
+    int     m,
+    int     n,
+    int     nnz,
+    int     *csrRowPtr,
+    int     *csrColIdx,
+    double  *csrVal,
+    int     *cscColPtr,
+    int     *cscRowIdx,
+    double  *cscVal
+);
 
 #endif

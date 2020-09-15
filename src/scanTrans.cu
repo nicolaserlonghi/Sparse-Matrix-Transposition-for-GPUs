@@ -1,7 +1,17 @@
 #include <utilities.h>
 #include <scanTrans.h>
 
-void scanTrans(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal, int *cscColPtr, int *cscRowIdx, double *cscVal) {
+void scanTrans(
+  int     m,
+  int     n,
+  int     nnz,
+  int     *csrRowPtr,
+  int     *csrColIdx,
+  double  *csrVal,
+  int     *cscColPtr,
+  int     *cscRowIdx,
+  double  *cscVal
+) {
     int nthreads = 1;
     int nthread = 0;
     int tid = 0;
@@ -47,7 +57,7 @@ void scanTrans(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *cs
       cscVal[loc] = cscVal[start + i];
     }
 
-    printArray(nnz, cscVal);
+    printArray(nnz,cscVal);
    
     free(intra);
     free(inter);

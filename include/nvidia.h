@@ -1,3 +1,6 @@
+#ifndef _NVIDIA_H
+#define _NVIDIA_H
+
 #include <cusparse_v2.h>
 
 void cuda_sptrans(
@@ -11,3 +14,5 @@ void cuda_sptrans(
     int        *cscRowIdx,
     double     *cscVal
 );
+
+#endif
