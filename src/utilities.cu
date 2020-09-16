@@ -15,6 +15,7 @@ char* detectFile(int argc, char* argv) {
     }
     if(filename == NULL) {
         std::cerr << "Error: No file provided!\n";
+        std::exit(EXIT_FAILURE);
     }
     std::cout << "matrix: " << filename << std::endl;
     return filename;
@@ -40,6 +41,7 @@ void readMatrix(
                             );
     if(retCode != 0) {
         std::cerr << "Failed to read the matrix from " << filename << "!\n";
+        std::exit(EXIT_FAILURE);
     }
 }
 
