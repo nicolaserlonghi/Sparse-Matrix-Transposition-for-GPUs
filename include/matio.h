@@ -170,6 +170,10 @@ int read_mtx_mat(int &m, int &n, int &nnzA, int *&csrRowPtrA, int *&csrColIdxA, 
             csrRowPtrA_counter[csrRowIdxA_tmp[i]]++;
         }
     }
+
+    std::cout << "m: " << m << std::endl; 
+    std::cout << "n: " << n << std::endl; 
+    std::cout << "nnz: " << nnzA << std::endl; 
     
     // free tmp space
     free(csrColIdxA_tmp);
