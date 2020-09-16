@@ -5,6 +5,9 @@
 #include <scanTrans.h>
 #include <nvidia.h>
 
+void checkResults(int m, int *arrayA, int *arrayB);
+void checkResults(int m, double *arrayA, double *arrayB);
+
 int main(int argc, char **argv) {
 
     // Recupero titolo file input
@@ -27,9 +30,9 @@ int main(int argc, char **argv) {
                 csrVal
             );
 
-    int     *cscRowIdx  = (int *)malloc(nnz * sizeof(int));
-    int     *cscColPtr  = (int *)malloc((n + 1) * sizeof(int));
-    double  *cscVal     = (double *)malloc(nnz * sizeof(double));
+    int     *serialCscRowIdx  = (int *)malloc(nnz * sizeof(int));
+    int     *serialCscColPtr  = (int *)malloc((n + 1) * sizeof(int));
+    double  *serialCscVal     = (double *)malloc(nnz * sizeof(double));
     
     // Esecuzione dell'algoritmo di trasposizione seriale
     performTransposition(
@@ -40,10 +43,14 @@ int main(int argc, char **argv) {
                         csrRowPtr,
                         csrColIdx,
                         csrVal,
-                        cscColPtr,
-                        cscRowIdx,
-                        cscVal
+                        serialCscColPtr,
+                        serialCscRowIdx,
+                        serialCscVal
                     );
+
+    int     *nvidiaCscRowIdx  = (int *)malloc(nnz * sizeof(int));
+    int     *nvidiaCscColPtr  = (int *)malloc((n + 1) * sizeof(int));
+    double  *nvidiaCscVal     = (double *)malloc(nnz * sizeof(double));
 
     // Esecuzione dell'algoritmo di trasposizione versione Nvidia
     performTransposition(
@@ -54,15 +61,48 @@ int main(int argc, char **argv) {
                         csrRowPtr,
                         csrColIdx,
                         csrVal,
-                        cscColPtr,
-                        cscRowIdx,
-                        cscVal
-                    );
+                        nvidiaCscColPtr,
+                        nvidiaCscRowIdx,
+                        nvidiaCscVal
+                    );    
+
+    checkResults(n + 1, serialCscColPtr, nvidiaCscColPtr);
+    checkResults(nnz, serialCscRowIdx, nvidiaCscRowIdx);
+    checkResults(nnz, serialCscVal, nvidiaCscVal);
 
     free(csrRowPtr); 
     free(csrColIdx); 
     free(csrVal);
-    free(cscRowIdx);
-    free(cscColPtr);
-    free(cscVal);
+    free(serialCscRowIdx);
+    free(serialCscColPtr);
+    free(serialCscVal);
+    free(nvidiaCscRowIdx);
+    free(nvidiaCscColPtr);
+    free(nvidiaCscVal);
+}
+
+void checkResults(int m, int *arrayA, int *arrayB) {
+    for (int i = 0; i < m; i++) {
+        if (arrayA[i] != arrayB[i]) {
+            std::cerr << "wrong result at: " << i
+                      << "\nhost:   " << arrayA[i]
+                      << "\ndevice: " << arrayB[i] << "\n\n";
+            cudaDeviceReset();
+            std::exit(EXIT_FAILURE);
+        }
+    }
+    std::cout << "\n<> Correct\n";
+}
+
+void checkResults(int m, double *arrayA, double *arrayB) {
+    for (int i = 0; i < m; i++) {
+        if (arrayA[i] != arrayB[i]) {
+            std::cerr << "wrong result at: " << i
+                      << "\nhost:   " << arrayA[i]
+                      << "\ndevice: " << arrayB[i] << "\n\n";
+            cudaDeviceReset();
+            std::exit(EXIT_FAILURE);
+        }
+    }
+    std::cout << "\n<> Correct\n";
 }

@@ -29,11 +29,10 @@ printf "#\t\t\t\t\t\t\t\t\t\t\t#\n"
 printf "#########################################################################################\n"
 cd testFiles
 while read line;
-do
-    ../bin/sparse_matrix_transpose $line
-    printf "\n\n"
+do    
+    ../bin/sparse_matrix_transpose $line 
+    printf "\n#########################################################################################\n"   
 done <<< "$(ls)"
-printf "\n\n#########################################################################################\n"
 printf "#\t\t\t\t\t\t\t\t\t\t\t#\n"
 printf "#\t\t\t\t\tTerminato\t\t\t\t\t#\n"
 printf "#\t\t\t\t\t\t\t\t\t\t\t#\n"
