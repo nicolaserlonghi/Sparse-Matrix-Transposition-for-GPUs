@@ -71,7 +71,7 @@ void nvidia(
                                     CUDA_R_64F,
                                     CUSPARSE_ACTION_NUMERIC,
                                     CUSPARSE_INDEX_BASE_ZERO,
-                                    CUSPARSE_CSR2CSC_ALG1,
+                                    CUSPARSE_CSR2CSC_ALG2,
                                     &P_bufferSize
                                 );
 
@@ -98,7 +98,7 @@ void nvidia(
                         CUDA_R_64F,
                         CUSPARSE_ACTION_NUMERIC,
                         CUSPARSE_INDEX_BASE_ZERO,
-                        CUSPARSE_CSR2CSC_ALG1,
+                        CUSPARSE_CSR2CSC_ALG2,
                         p_buffer
                     );
 
