@@ -35,28 +35,22 @@ void nvidia(
     // Qui inizia il calcolo del tempo di copia dei dati
 
     // Matrix csr
-    SAFE_CALL(cudaMallocManaged((void **)&d_csrRowPtr, (m+1) * sizeof(int)));
-    SAFE_CALL(cudaMallocManaged((void **)&d_csrColIdx, nnz   * sizeof(int)));
-    SAFE_CALL(cudaMallocManaged((void **)&d_csrVal,    nnz   * sizeof(double)));
+    SAFE_CALL(cudaMalloc(&d_csrRowPtr, (m+1) * sizeof(int)));
+    SAFE_CALL(cudaMalloc(&d_csrColIdx, nnz   * sizeof(int)));
+    SAFE_CALL(cudaMalloc(&d_csrVal,    nnz   * sizeof(double)));
 
     SAFE_CALL(cudaMemcpy(d_csrRowPtr, csrRowPtr, (m+1) * sizeof(int),    cudaMemcpyHostToDevice));
     SAFE_CALL(cudaMemcpy(d_csrColIdx, csrColIdx, nnz   * sizeof(int),    cudaMemcpyHostToDevice));
     SAFE_CALL(cudaMemcpy(d_csrVal,    csrVal,    nnz   * sizeof(double), cudaMemcpyHostToDevice));
 
     // Matrix csc     
-    SAFE_CALL(cudaMallocManaged((void **)&d_cscColPtr, (n+1) * sizeof(int)));
-    SAFE_CALL(cudaMallocManaged((void **)&d_cscRowIdx, nnz   * sizeof(int)));
-    SAFE_CALL(cudaMallocManaged((void **)&d_cscVal,    nnz   * sizeof(double)));
-
-    SAFE_CALL(cudaMemset(d_cscColPtr, 0, (n+1) * sizeof(int)));
-    SAFE_CALL(cudaMemset(d_cscRowIdx, 0, nnz   * sizeof(int)));
-    SAFE_CALL(cudaMemset(d_cscVal,    0, nnz   * sizeof(double)));
+    SAFE_CALL(cudaMalloc(&d_cscColPtr, (n+1) * sizeof(int)));
+    SAFE_CALL(cudaMalloc(&d_cscRowIdx, nnz   * sizeof(int)));
+    SAFE_CALL(cudaMalloc(&d_cscVal,    nnz   * sizeof(double)));
 
     // Qui finisce il tempo per la copia dei dati
     
     // setup buffersize
-
-    
 
     // Qui andrebbero i DimGrid e DimBlock
 
@@ -81,9 +75,10 @@ void nvidia(
                                     &P_bufferSize
                                 );
 
-    if (NULL != p_buffer) { 
-        SAFE_CALL(cudaFree(p_buffer));
-    }
+    // Non credo ci serva, quando mai sarà diverso da NULL?
+    // if (NULL != p_buffer) { 
+    //     SAFE_CALL(cudaFree(p_buffer));
+    // }
 
     SAFE_CALL(cudaMalloc((void**)&p_buffer, P_bufferSize));
     
