@@ -1,7 +1,7 @@
 import os
 import sys
-import string
 import commands
+import ntpath
 
 def excuteCmdAndPrintOutput(cmd):
     result = commands.getoutput(cmd)
@@ -49,17 +49,31 @@ def parseResultAndSaveToFile(resultFile, result, matrixName):
                     serialTime + "; " + nvidiaTime + "\n"
     resultFile.write(fileLine)
 
-def startTest(testPath):
+def executeCommandOnFile(file, path=''):
+    if file.endswith(".mtx"):
+        filePath = os.path.join(path, file)
+        cmd = "./bin/sparse_matrix_transpose " + filePath
+        result = excuteCmdAndPrintOutput(cmd)
+        print("\n#########################################################################################\n")
+        return result
+    else:
+        print "ERROR: " + str(file) + " is not a matrix."
+
+def startTest(paths):
     # save result file
     resultFile = open("results.csv","w")
     resultFile.write("matrix; type; m; n; nnz; serial; nvidia\n")
-    for file in os.listdir(testPath):
-        if file.endswith(".mtx"):
-            filePath = os.path.join(testPath, file)
-            cmd = "./bin/sparse_matrix_transpose " + filePath
-            result = excuteCmdAndPrintOutput(cmd)
-            print("\n#########################################################################################\n")
-        parseResultAndSaveToFile(resultFile, result, file)      
+    for path in paths:
+        if(os.path.isfile(path)):
+            file = ntpath.basename(path)
+            result = executeCommandOnFile(path)
+            parseResultAndSaveToFile(resultFile, result, file)
+        elif os.path.isdir(path): 
+            for file in os.listdir(path):
+                result = executeCommandOnFile(file, path)
+                parseResultAndSaveToFile(resultFile, result, file)
+        else:
+            print "You have to pass a path of dir or file"
     resultFile.write("\n")
     resultFile.close()
 
@@ -68,7 +82,12 @@ def startTest(testPath):
 testPath = "testFiles/"
 
 cleanCompile()
-startTest(testPath)
+
+args = sys.argv[1:]
+if(len(args) == 0):
+    startTest([testPath])
+else:
+    startTest(args)
 
 
 printCommentWithHeader("Terminato")
