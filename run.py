@@ -44,9 +44,10 @@ def parseResultAndSaveToFile(resultFile, result, matrixName):
     nnz = getTextAfterKey(result, "nnz: ")
     serialTime = getTextAfterKey(result, "Serial Sparse Matrix Transpostion:")
     nvidiaTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion:")
+    nvidiaTimeAlgo2 = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO2:")
     fileLine = matrixName + "; " + matrixType + "; " +  \
                     m + "; " + n + "; " + nnz + "; " + \
-                    serialTime + "; " + nvidiaTime + "\n"
+                    serialTime + "; " + nvidiaTime + "," + nvidiaTimeAlgo2 + "\n"
     resultFile.write(fileLine)
 
 def executeCommandOnFile(file, path=''):
@@ -62,7 +63,7 @@ def executeCommandOnFile(file, path=''):
 def startTest(paths):
     # save result file
     resultFile = open("results.csv","w")
-    resultFile.write("matrix; type; m; n; nnz; serial; nvidia\n")
+    resultFile.write("matrix; type; m; n; nnz; serial; nvidia; nvidiaAlgo2\n")
     for path in paths:
         if(os.path.isfile(path)):
             file = ntpath.basename(path)
