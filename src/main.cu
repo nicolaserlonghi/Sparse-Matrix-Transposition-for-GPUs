@@ -66,6 +66,24 @@ int main(int argc, char **argv) {
                         nvidiaCscVal
                     );    
 
+    int     *nvidia2CscRowIdx  = (int *)malloc(nnz * sizeof(int));
+    int     *nvidia2CscColPtr  = (int *)malloc((n + 1) * sizeof(int));
+    double  *nvidia2CscVal     = (double *)malloc(nnz * sizeof(double));
+
+    // Esecuzione dell'algoritmo di trasposizione versione Nvidia
+    performTransposition(
+        nvidia2,
+        m,
+        n,
+        nnz,
+        csrRowPtr,
+        csrColIdx,
+        csrVal,
+        nvidia2CscColPtr,
+        nvidia2CscRowIdx,
+        nvidia2CscVal
+    ); 
+
     checkResults(n + 1, serialCscColPtr, nvidiaCscColPtr);
     checkResults(nnz, serialCscRowIdx, nvidiaCscRowIdx);
     checkResults(nnz, serialCscVal, nvidiaCscVal);
