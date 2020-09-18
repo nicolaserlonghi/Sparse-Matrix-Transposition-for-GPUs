@@ -43,11 +43,11 @@ def parseResultAndSaveToFile(resultFile, result, matrixName):
     n = getTextAfterKey(result, "n: ")
     nnz = getTextAfterKey(result, "nnz: ")
     serialTime = getTextAfterKey(result, "Serial Sparse Matrix Transpostion:")
-    nvidiaTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion:")
+    nvidiaTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO1:")
     nvidiaTimeAlgo2 = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO2:")
     fileLine = matrixName + "; " + matrixType + "; " +  \
                     m + "; " + n + "; " + nnz + "; " + \
-                    serialTime + "; " + nvidiaTime + "," + nvidiaTimeAlgo2 + "\n"
+                    serialTime + "; " + nvidiaTime + "; " + nvidiaTimeAlgo2 + "\n"
     resultFile.write(fileLine)
 
 def executeCommandOnFile(file, path=''):
