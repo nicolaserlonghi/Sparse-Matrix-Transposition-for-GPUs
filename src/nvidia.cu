@@ -21,12 +21,12 @@ int nvidia(
     cudaSetDevice(0);
 
     double reqMem = (nnz * sizeof(int)) * 2 + (nnz * sizeof(double)) * 2 + (m+1) * sizeof(int) + (n+1) * sizeof(int);
-    double nvidiaFreeMemory = getSizeOfNvidiaFreeMemory();
-    std::cout << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
+    double nvidiaFreeMemory = getSizeOfNvidiaFreeMemory();    
     if ( nvidiaFreeMemory < reqMem) {
+        std::cout << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
         return -1;
     }
-    
+        
     cusparseHandle_t handle = NULL;
 
     cusparseCreate(&handle);
@@ -75,6 +75,18 @@ int nvidia(
                                     CUSPARSE_CSR2CSC_ALG1,
                                     &P_bufferSize
                                 );
+
+    reqMem = reqMem + static_cast<double>(P_bufferSize);
+    std::cout << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
+    if ( nvidiaFreeMemory < reqMem) {
+        SAFE_CALL(cudaFree(d_csrRowPtr));
+        SAFE_CALL(cudaFree(d_csrColIdx));
+        SAFE_CALL(cudaFree(d_csrVal));
+        SAFE_CALL(cudaFree(d_cscColPtr));
+        SAFE_CALL(cudaFree(d_cscRowIdx));
+        SAFE_CALL(cudaFree(d_cscVal));
+        return -1;
+    }
 
     SAFE_CALL(cudaMalloc(&p_buffer, P_bufferSize));
     
@@ -137,10 +149,12 @@ int nvidia2(
     cudaSetDevice(0);
 
     double reqMem = (nnz * sizeof(int)) * 2 + (nnz * sizeof(double)) * 2 + (m+1) * sizeof(int) + (n+1) * sizeof(int);
-    if ( getSizeOfNvidiaFreeMemory() < reqMem) {
+    double nvidiaFreeMemory = getSizeOfNvidiaFreeMemory();    
+    if ( nvidiaFreeMemory < reqMem) {
+        std::cout << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
         return -1;
     }
-    
+        
     cusparseHandle_t handle = NULL;
 
     cusparseCreate(&handle);
@@ -190,6 +204,17 @@ int nvidia2(
                                     &P_bufferSize
                                 );
 
+    reqMem = reqMem + static_cast<double>(P_bufferSize);
+    std::cout << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
+    if ( nvidiaFreeMemory < reqMem) {
+        SAFE_CALL(cudaFree(d_csrRowPtr));
+        SAFE_CALL(cudaFree(d_csrColIdx));
+        SAFE_CALL(cudaFree(d_csrVal));
+        SAFE_CALL(cudaFree(d_cscColPtr));
+        SAFE_CALL(cudaFree(d_cscRowIdx));
+        SAFE_CALL(cudaFree(d_cscVal));
+        return -1;
+    }
     SAFE_CALL(cudaMalloc(&p_buffer, P_bufferSize));
     
     TM_device.start();

@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
     int     *csrRowPtr;
     int     *csrColIdx;
     double  *csrVal;
+    int     result;
 
     // Recupero della matrice
     readMatrix(
@@ -35,7 +36,7 @@ int main(int argc, char **argv) {
     double  *serialCscVal     = (double *)malloc(nnz * sizeof(double));
     
     // Esecuzione dell'algoritmo di trasposizione seriale
-    int result = performTransposition(
+    result = performTransposition(
                                     serial,
                                     m,
                                     n,
