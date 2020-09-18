@@ -15,7 +15,7 @@
  * @param: cscRowIdx: array di dimensione nnz contenente l'indice di riga di ogni elemento diverso da zero della matrice trasposta
  * @param: cscVal: array di dimensione nnz contenente gli elementi diversi da zero della matrice trasposta
  */
-void nvidia(
+int nvidia(
     int         m,
     int         n,
     int         nnz,
@@ -27,7 +27,7 @@ void nvidia(
     double     *cscVal
 );
 
-void nvidia2(
+int nvidia2(
     int         m,
     int         n,
     int         nnz,

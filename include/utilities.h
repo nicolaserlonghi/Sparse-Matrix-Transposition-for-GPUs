@@ -68,8 +68,8 @@ void clearTheBuffers(
  * @param: cscRowIdx: array di dimensione nnz contenente l'indice di riga di ogni elemento diverso da zero della matrice trasposta
  * @param: cscVal: array di dimensione nnz contenente gli elementi diversi da zero della matrice trasposta
  */
-void performTransposition(
-    void    (*f)(int, int, int, int*, int*, double*, int*, int*, double*),
+int performTransposition(
+    int    (*f)(int, int, int, int*, int*, double*, int*, int*, double*),
     int     m,
     int     n,
     int     nnz,
@@ -80,5 +80,11 @@ void performTransposition(
     int     *cscRowIdx,
     double  *cscVal
 );
+
+
+/**
+ * @brief: Restituisce la quantità di memoria libera della GPU
+ */
+double getSizeOfNvidiaFreeMemory();
 
 #endif

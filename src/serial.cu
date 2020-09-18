@@ -4,7 +4,7 @@
 
 using namespace timer;
 
-void serial(
+int serial(
     int     m,
     int     n,
     int     nnz,
@@ -43,4 +43,6 @@ void serial(
     TM_host.print("Serial Sparse Matrix Transpostion: ");
 
     free(curr);
+
+    return 0;
 }

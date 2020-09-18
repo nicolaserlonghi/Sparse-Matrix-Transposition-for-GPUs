@@ -26,7 +26,7 @@ void cudaErrorHandler(cudaError_t error,
                   << std::endl;
         assert(false);                                                  //NOLINT
         std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));
-        std::exit(EXIT_FAILURE);
+        // std::exit(EXIT_FAILURE);
     }
 }
 

@@ -5,7 +5,7 @@
 
 using namespace timer;
 
-void nvidia(
+int nvidia(
     int     m,
     int     n,
     int     nnz,
@@ -19,6 +19,13 @@ void nvidia(
 
     Timer<DEVICE> TM_device;
     cudaSetDevice(0);
+
+    double reqMem = (nnz * sizeof(int)) * 2 + (nnz * sizeof(double)) * 2 + (m+1) * sizeof(int) + (n+1) * sizeof(int);
+    double nvidiaFreeMemory = getSizeOfNvidiaFreeMemory();
+    std::cout << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
+    if ( nvidiaFreeMemory < reqMem) {
+        return -1;
+    }
     
     cusparseHandle_t handle = NULL;
 
@@ -31,8 +38,6 @@ void nvidia(
     int     *d_cscColPtr;
     int     *d_cscRowIdx;
     double  *d_cscVal;
-
-    // Qui inizia il calcolo del tempo di copia dei dati
 
     // Matrix csr
     SAFE_CALL(cudaMalloc(&d_csrRowPtr, (m+1) * sizeof(int)));
@@ -47,12 +52,8 @@ void nvidia(
     SAFE_CALL(cudaMalloc(&d_cscColPtr, (n+1) * sizeof(int)));
     SAFE_CALL(cudaMalloc(&d_cscRowIdx, nnz   * sizeof(int)));
     SAFE_CALL(cudaMalloc(&d_cscVal,    nnz   * sizeof(double)));
-
-    // Qui finisce il tempo per la copia dei dati
     
     // setup buffersize
-
-    // Qui andrebbero i DimGrid e DimBlock
 
     size_t  P_bufferSize = 0;
     char*   p_buffer= NULL;
@@ -75,12 +76,7 @@ void nvidia(
                                     &P_bufferSize
                                 );
 
-    // Non credo ci serva, quando mai sarà diverso da NULL?
-    // if (NULL != p_buffer) { 
-    //     SAFE_CALL(cudaFree(p_buffer));
-    // }
-
-    SAFE_CALL(cudaMalloc((void**)&p_buffer, P_bufferSize));
+    SAFE_CALL(cudaMalloc(&p_buffer, P_bufferSize));
     
     TM_device.start();
 
@@ -121,9 +117,11 @@ void nvidia(
     SAFE_CALL(cudaFree(d_cscRowIdx));
     SAFE_CALL(cudaFree(d_cscVal));
 
+    return 0;
+
 }
 
-void nvidia2(
+int nvidia2(
     int     m,
     int     n,
     int     nnz,
@@ -137,6 +135,11 @@ void nvidia2(
 
     Timer<DEVICE> TM_device;
     cudaSetDevice(0);
+
+    double reqMem = (nnz * sizeof(int)) * 2 + (nnz * sizeof(double)) * 2 + (m+1) * sizeof(int) + (n+1) * sizeof(int);
+    if ( getSizeOfNvidiaFreeMemory() < reqMem) {
+        return -1;
+    }
     
     cusparseHandle_t handle = NULL;
 
@@ -149,8 +152,6 @@ void nvidia2(
     int     *d_cscColPtr;
     int     *d_cscRowIdx;
     double  *d_cscVal;
-
-    // Qui inizia il calcolo del tempo di copia dei dati
 
     // Matrix csr
     SAFE_CALL(cudaMalloc(&d_csrRowPtr, (m+1) * sizeof(int)));
@@ -165,12 +166,8 @@ void nvidia2(
     SAFE_CALL(cudaMalloc(&d_cscColPtr, (n+1) * sizeof(int)));
     SAFE_CALL(cudaMalloc(&d_cscRowIdx, nnz   * sizeof(int)));
     SAFE_CALL(cudaMalloc(&d_cscVal,    nnz   * sizeof(double)));
-
-    // Qui finisce il tempo per la copia dei dati
     
     // setup buffersize
-
-    // Qui andrebbero i DimGrid e DimBlock
 
     size_t  P_bufferSize = 0;
     char*   p_buffer= NULL;
@@ -193,12 +190,7 @@ void nvidia2(
                                     &P_bufferSize
                                 );
 
-    // Non credo ci serva, quando mai sarà diverso da NULL?
-    // if (NULL != p_buffer) { 
-    //     SAFE_CALL(cudaFree(p_buffer));
-    // }
-
-    SAFE_CALL(cudaMalloc((void**)&p_buffer, P_bufferSize));
+    SAFE_CALL(cudaMalloc(&p_buffer, P_bufferSize));
     
     TM_device.start();
 
@@ -238,5 +230,7 @@ void nvidia2(
     SAFE_CALL(cudaFree(d_cscColPtr));
     SAFE_CALL(cudaFree(d_cscRowIdx));
     SAFE_CALL(cudaFree(d_cscVal));
+
+    return 0;
 
 }

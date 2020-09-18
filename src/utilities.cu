@@ -57,8 +57,8 @@ void clearTheBuffers(
     std::fill_n(cscColPtr, n+1, 0);
 }
 
-void performTransposition(
-    void    (*f)(int, int, int, int*, int*, double*, int*, int*, double*),
+int performTransposition(
+    int    (*f)(int, int, int, int*, int*, double*, int*, int*, double*),
     int     m,
     int     n,
     int     nnz,
@@ -80,7 +80,7 @@ void performTransposition(
                 );
 
     // Chiamata della funzione per la trasposizione
-    (*f)(
+    int result = (*f)(
             m,
             n,
             nnz,
@@ -91,5 +91,11 @@ void performTransposition(
             cscRowIdx,
             cscVal
         );
+    return result;
+}
 
+double getSizeOfNvidiaFreeMemory() {
+    size_t free, total;
+    cudaMemGetInfo( &free, &total );
+    return static_cast<double>(free);
 }

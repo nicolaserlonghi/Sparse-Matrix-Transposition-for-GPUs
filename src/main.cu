@@ -35,58 +35,67 @@ int main(int argc, char **argv) {
     double  *serialCscVal     = (double *)malloc(nnz * sizeof(double));
     
     // Esecuzione dell'algoritmo di trasposizione seriale
-    performTransposition(
-                        serial,
-                        m,
-                        n,
-                        nnz,
-                        csrRowPtr,
-                        csrColIdx,
-                        csrVal,
-                        serialCscColPtr,
-                        serialCscRowIdx,
-                        serialCscVal
-                    );
+    int result = performTransposition(
+                                    serial,
+                                    m,
+                                    n,
+                                    nnz,
+                                    csrRowPtr,
+                                    csrColIdx,
+                                    csrVal,
+                                    serialCscColPtr,
+                                    serialCscRowIdx,
+                                    serialCscVal
+                                );
 
     int     *nvidiaCscRowIdx  = (int *)malloc(nnz * sizeof(int));
     int     *nvidiaCscColPtr  = (int *)malloc((n + 1) * sizeof(int));
     double  *nvidiaCscVal     = (double *)malloc(nnz * sizeof(double));
 
     // Esecuzione dell'algoritmo di trasposizione versione Nvidia
-    performTransposition(
-                        nvidia,
-                        m,
-                        n,
-                        nnz,
-                        csrRowPtr,
-                        csrColIdx,
-                        csrVal,
-                        nvidiaCscColPtr,
-                        nvidiaCscRowIdx,
-                        nvidiaCscVal
-                    );    
+    result = performTransposition(
+                                    nvidia,
+                                    m,
+                                    n,
+                                    nnz,
+                                    csrRowPtr,
+                                    csrColIdx,
+                                    csrVal,
+                                    nvidiaCscColPtr,
+                                    nvidiaCscRowIdx,
+                                    nvidiaCscVal
+                                );
+    if(result == -1) {
+        std::cout << "GPU Sparse Matrix Transpostion ALGO1: memory is too low" << std::endl;
+    } 
 
     int     *nvidia2CscRowIdx  = (int *)malloc(nnz * sizeof(int));
     int     *nvidia2CscColPtr  = (int *)malloc((n + 1) * sizeof(int));
     double  *nvidia2CscVal     = (double *)malloc(nnz * sizeof(double));
 
     // Esecuzione dell'algoritmo di trasposizione versione Nvidia
-    performTransposition(
-        nvidia2,
-        m,
-        n,
-        nnz,
-        csrRowPtr,
-        csrColIdx,
-        csrVal,
-        nvidia2CscColPtr,
-        nvidia2CscRowIdx,
-        nvidia2CscVal
-    ); 
+    result = performTransposition(
+                                nvidia2,
+                                m,
+                                n,
+                                nnz,
+                                csrRowPtr,
+                                csrColIdx,
+                                csrVal,
+                                nvidia2CscColPtr,
+                                nvidia2CscRowIdx,
+                                nvidia2CscVal
+                            ); 
 
-    checkResults(n + 1, serialCscColPtr, nvidiaCscColPtr);
-    checkResults(nnz, serialCscRowIdx, nvidiaCscRowIdx);
-    checkResults(nnz, serialCscVal, nvidiaCscVal);
+    if(result == -1) {
+        std::cout << "GPU Sparse Matrix Transpostion ALGO2: memory is too low" << std::endl;
+    } 
+
+    if (result != -1) {
+        checkResults(n + 1, serialCscColPtr, nvidiaCscColPtr);
+        checkResults(nnz, serialCscRowIdx, nvidiaCscRowIdx);
+        checkResults(nnz, serialCscVal, nvidiaCscVal);
+    }
 
     free(csrRowPtr); 
     free(csrColIdx); 
