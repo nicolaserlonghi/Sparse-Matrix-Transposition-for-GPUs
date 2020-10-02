@@ -3,18 +3,15 @@ SRC := $(wildcard src/*.cu)
 OBJ := $(SRC:src/%.cu=build/%.o)
 CXX := g++
 NVCC := nvcc
-# Qui non serve -lcusparse
-CXXFLAGS = -std=c++11 -w #-O3 -arch=sm_62
+CXXFLAGS = -std=c++11 -w
 NVCCFAGS = -lcusparse
 CFLAGS := -I include/ -c
 
 all: $(PROJECT)
 
-# Qui serve -lcusparse altrimenti non funziona. PERCHE'??
 $(PROJECT): $(OBJ)
 	$(NVCC) $(NVCCFAGS) $(OBJ) -o $(PROJECT)
 
-# Qui non serve -lcusparse
 build/%.o: src/%.cu
 	mkdir -p build
 	$(NVCC) $(CXXFLAGS) $(CFLAGS) $< -o $@
