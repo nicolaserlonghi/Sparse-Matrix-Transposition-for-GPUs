@@ -1,7 +1,6 @@
 #include <nvidia.h>
 #include <utilities.h>
 #include <Timer.cuh>
-#include <CheckError.cuh>
 
 using namespace timer;
 
@@ -40,18 +39,18 @@ float nvidia(
     double  *d_cscVal;
 
     // Matrix csr
-    SAFE_CALL(cudaMalloc(&d_csrRowPtr, (m+1) * sizeof(int)));
-    SAFE_CALL(cudaMalloc(&d_csrColIdx, nnz   * sizeof(int)));
-    SAFE_CALL(cudaMalloc(&d_csrVal,    nnz   * sizeof(double)));
+    cudaMalloc(&d_csrRowPtr, (m+1) * sizeof(int));
+    cudaMalloc(&d_csrColIdx, nnz   * sizeof(int));
+    cudaMalloc(&d_csrVal,    nnz   * sizeof(double));
 
-    SAFE_CALL(cudaMemcpy(d_csrRowPtr, csrRowPtr, (m+1) * sizeof(int),    cudaMemcpyHostToDevice));
-    SAFE_CALL(cudaMemcpy(d_csrColIdx, csrColIdx, nnz   * sizeof(int),    cudaMemcpyHostToDevice));
-    SAFE_CALL(cudaMemcpy(d_csrVal,    csrVal,    nnz   * sizeof(double), cudaMemcpyHostToDevice));
+    cudaMemcpy(d_csrRowPtr, csrRowPtr, (m+1) * sizeof(int),    cudaMemcpyHostToDevice);
+    cudaMemcpy(d_csrColIdx, csrColIdx, nnz   * sizeof(int),    cudaMemcpyHostToDevice);
+    cudaMemcpy(d_csrVal,    csrVal,    nnz   * sizeof(double), cudaMemcpyHostToDevice);
 
     // Matrix csc     
-    SAFE_CALL(cudaMalloc(&d_cscColPtr, (n+1) * sizeof(int)));
-    SAFE_CALL(cudaMalloc(&d_cscRowIdx, nnz   * sizeof(int)));
-    SAFE_CALL(cudaMalloc(&d_cscVal,    nnz   * sizeof(double)));
+    cudaMalloc(&d_cscColPtr, (n+1) * sizeof(int));
+    cudaMalloc(&d_cscRowIdx, nnz   * sizeof(int));
+    cudaMalloc(&d_cscVal,    nnz   * sizeof(double));
     
     // setup buffersize
 
@@ -79,16 +78,16 @@ float nvidia(
     reqMem = reqMem + static_cast<double>(P_bufferSize);
     std::cout << std::setprecision(0) << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
     if ( nvidiaFreeMemory < reqMem) {
-        SAFE_CALL(cudaFree(d_csrRowPtr));
-        SAFE_CALL(cudaFree(d_csrColIdx));
-        SAFE_CALL(cudaFree(d_csrVal));
-        SAFE_CALL(cudaFree(d_cscColPtr));
-        SAFE_CALL(cudaFree(d_cscRowIdx));
-        SAFE_CALL(cudaFree(d_cscVal));
+        cudaFree(d_csrRowPtr);
+        cudaFree(d_csrColIdx);
+        cudaFree(d_csrVal);
+        cudaFree(d_cscColPtr);
+        cudaFree(d_cscRowIdx);
+        cudaFree(d_cscVal);
         return -1;
     }
 
-    SAFE_CALL(cudaMalloc(&p_buffer, P_bufferSize));
+    cudaMalloc(&p_buffer, P_bufferSize);
     
     TM_device.start();
 
@@ -111,23 +110,22 @@ float nvidia(
                     );
 
     TM_device.stop();
-    CHECK_CUDA_ERROR
     TM_device.print("GPU Sparse Matrix Transpostion ALGO1: ");
 
   
-    SAFE_CALL(cudaMemcpy(cscColPtr, d_cscColPtr, (n+1) * sizeof(int),  cudaMemcpyDeviceToHost));
-    SAFE_CALL(cudaMemcpy(cscRowIdx, d_cscRowIdx, nnz * sizeof(int),    cudaMemcpyDeviceToHost));
-    SAFE_CALL(cudaMemcpy(cscVal,    d_cscVal,    nnz * sizeof(double), cudaMemcpyDeviceToHost));
+    cudaMemcpy(cscColPtr, d_cscColPtr, (n+1) * sizeof(int),  cudaMemcpyDeviceToHost);
+    cudaMemcpy(cscRowIdx, d_cscRowIdx, nnz * sizeof(int),    cudaMemcpyDeviceToHost);
+    cudaMemcpy(cscVal,    d_cscVal,    nnz * sizeof(double), cudaMemcpyDeviceToHost);
 
     // step 6: free resources
 
     cusparseDestroy(handle);
-    SAFE_CALL(cudaFree(d_csrRowPtr));
-    SAFE_CALL(cudaFree(d_csrColIdx));
-    SAFE_CALL(cudaFree(d_csrVal));
-    SAFE_CALL(cudaFree(d_cscColPtr));
-    SAFE_CALL(cudaFree(d_cscRowIdx));
-    SAFE_CALL(cudaFree(d_cscVal));
+    cudaFree(d_csrRowPtr);
+    cudaFree(d_csrColIdx);
+    cudaFree(d_csrVal);
+    cudaFree(d_cscColPtr);
+    cudaFree(d_cscRowIdx);
+    cudaFree(d_cscVal);
 
     return TM_device.duration(); 
 
@@ -168,18 +166,18 @@ float nvidia2(
     double  *d_cscVal;
 
     // Matrix csr
-    SAFE_CALL(cudaMalloc(&d_csrRowPtr, (m+1) * sizeof(int)));
-    SAFE_CALL(cudaMalloc(&d_csrColIdx, nnz   * sizeof(int)));
-    SAFE_CALL(cudaMalloc(&d_csrVal,    nnz   * sizeof(double)));
+    cudaMalloc(&d_csrRowPtr, (m+1) * sizeof(int));
+    cudaMalloc(&d_csrColIdx, nnz   * sizeof(int));
+    cudaMalloc(&d_csrVal,    nnz   * sizeof(double));
 
-    SAFE_CALL(cudaMemcpy(d_csrRowPtr, csrRowPtr, (m+1) * sizeof(int),    cudaMemcpyHostToDevice));
-    SAFE_CALL(cudaMemcpy(d_csrColIdx, csrColIdx, nnz   * sizeof(int),    cudaMemcpyHostToDevice));
-    SAFE_CALL(cudaMemcpy(d_csrVal,    csrVal,    nnz   * sizeof(double), cudaMemcpyHostToDevice));
+    cudaMemcpy(d_csrRowPtr, csrRowPtr, (m+1) * sizeof(int),    cudaMemcpyHostToDevice);
+    cudaMemcpy(d_csrColIdx, csrColIdx, nnz   * sizeof(int),    cudaMemcpyHostToDevice);
+    cudaMemcpy(d_csrVal,    csrVal,    nnz   * sizeof(double), cudaMemcpyHostToDevice);
 
     // Matrix csc     
-    SAFE_CALL(cudaMalloc(&d_cscColPtr, (n+1) * sizeof(int)));
-    SAFE_CALL(cudaMalloc(&d_cscRowIdx, nnz   * sizeof(int)));
-    SAFE_CALL(cudaMalloc(&d_cscVal,    nnz   * sizeof(double)));
+    cudaMalloc(&d_cscColPtr, (n+1) * sizeof(int));
+    cudaMalloc(&d_cscRowIdx, nnz   * sizeof(int));
+    cudaMalloc(&d_cscVal,    nnz   * sizeof(double));
     
     // setup buffersize
 
@@ -207,15 +205,15 @@ float nvidia2(
     reqMem = reqMem + static_cast<double>(P_bufferSize);
     std::cout << std::setprecision(0) << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
     if ( nvidiaFreeMemory < reqMem) {
-        SAFE_CALL(cudaFree(d_csrRowPtr));
-        SAFE_CALL(cudaFree(d_csrColIdx));
-        SAFE_CALL(cudaFree(d_csrVal));
-        SAFE_CALL(cudaFree(d_cscColPtr));
-        SAFE_CALL(cudaFree(d_cscRowIdx));
-        SAFE_CALL(cudaFree(d_cscVal));
+        cudaFree(d_csrRowPtr);
+        cudaFree(d_csrColIdx);
+        cudaFree(d_csrVal);
+        cudaFree(d_cscColPtr);
+        cudaFree(d_cscRowIdx);
+        cudaFree(d_cscVal);
         return -1;
     }
-    SAFE_CALL(cudaMalloc(&p_buffer, P_bufferSize));
+    cudaMalloc(&p_buffer, P_bufferSize);
     
     TM_device.start();
 
@@ -238,23 +236,22 @@ float nvidia2(
                     );
 
     TM_device.stop();
-    CHECK_CUDA_ERROR
     TM_device.print("GPU Sparse Matrix Transpostion ALGO2: ");
 
   
-    SAFE_CALL(cudaMemcpy(cscColPtr, d_cscColPtr, (n+1) * sizeof(int),  cudaMemcpyDeviceToHost));
-    SAFE_CALL(cudaMemcpy(cscRowIdx, d_cscRowIdx, nnz * sizeof(int),    cudaMemcpyDeviceToHost));
-    SAFE_CALL(cudaMemcpy(cscVal,    d_cscVal,    nnz * sizeof(double), cudaMemcpyDeviceToHost));
+    cudaMemcpy(cscColPtr, d_cscColPtr, (n+1) * sizeof(int),  cudaMemcpyDeviceToHost);
+    cudaMemcpy(cscRowIdx, d_cscRowIdx, nnz * sizeof(int),    cudaMemcpyDeviceToHost);
+    cudaMemcpy(cscVal,    d_cscVal,    nnz * sizeof(double), cudaMemcpyDeviceToHost);
 
     // step 6: free resources
 
     cusparseDestroy(handle);
-    SAFE_CALL(cudaFree(d_csrRowPtr));
-    SAFE_CALL(cudaFree(d_csrColIdx));
-    SAFE_CALL(cudaFree(d_csrVal));
-    SAFE_CALL(cudaFree(d_cscColPtr));
-    SAFE_CALL(cudaFree(d_cscRowIdx));
-    SAFE_CALL(cudaFree(d_cscVal));
+    cudaFree(d_csrRowPtr);
+    cudaFree(d_csrColIdx);
+    cudaFree(d_csrVal);
+    cudaFree(d_cscColPtr);
+    cudaFree(d_cscRowIdx);
+    cudaFree(d_cscVal);
 
     return TM_device.duration(); 
 
