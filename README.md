@@ -6,20 +6,26 @@ The build process tool of the project is Makefile. The following are the steps t
 
 1. Clone or download this repository and move to the folder project.
 
-2. If your device have python3 installed do this step and you have done otherwise go direct to the step three.
+2. Download test files.
+
+```
+wget -i testFilesLink.txt -P testFiles
+```
+
+3. If your device have python3 installed do this step and you have done otherwise go direct to the step four.
 
 ```
 python3 run.py [folder that contains matrices.mtx][single matrix.mtx]
 ```
 
-3. if you got here it means you don't have python3 so let's do it by hand.
+4. if you got here it means you don't have python3 so let's do it by hand.
 
 ```
 make
 make install
 ```
 
-4. Run it on a single matrix.
+5. Run it on a single matrix.
 
 ```
 ./bin/sparse_matrix_transpose matrix.mtx
