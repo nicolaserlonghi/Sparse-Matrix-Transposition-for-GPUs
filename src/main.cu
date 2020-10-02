@@ -53,75 +53,75 @@ int main(int argc, char **argv) {
     cudaDeviceReset();
     std::cout << std::endl;
 
-    // int     *nvidiaCscRowIdx  = (int *)malloc(nnz * sizeof(int));
-    // int     *nvidiaCscColPtr  = (int *)malloc((n + 1) * sizeof(int));
-    // double  *nvidiaCscVal     = (double *)malloc(nnz * sizeof(double));
-    // float   nvidiaTime;
+    int     *nvidiaCscRowIdx  = (int *)malloc(nnz * sizeof(int));
+    int     *nvidiaCscColPtr  = (int *)malloc((n + 1) * sizeof(int));
+    double  *nvidiaCscVal     = (double *)malloc(nnz * sizeof(double));
+    float   nvidiaTime;
 
     // Esecuzione dell'algoritmo di trasposizione versione Nvidia ALGO1
-    // nvidiaTime = performTransposition(
-    //                                 nvidia,
-    //                                 m,
-    //                                 n,
-    //                                 nnz,
-    //                                 csrRowPtr,
-    //                                 csrColIdx,
-    //                                 csrVal,
-    //                                 nvidiaCscColPtr,
-    //                                 nvidiaCscRowIdx,
-    //                                 nvidiaCscVal
-    //                             );
-    // if(nvidiaTime == -1) {
-    //     std::cout << "GPU Sparse Matrix Transpostion ALGO1: memory is too low" << std::endl;
-    //     std::cout << "ALGO1 speedup: -" << std::endl;
-    // } else {
-    //     std::cout << std::setprecision(1) << "ALGO1 speedup: " << serialTime / nvidiaTime << "x" << std::endl;
-    // }    
+    nvidiaTime = performTransposition(
+                                    nvidia,
+                                    m,
+                                    n,
+                                    nnz,
+                                    csrRowPtr,
+                                    csrColIdx,
+                                    csrVal,
+                                    nvidiaCscColPtr,
+                                    nvidiaCscRowIdx,
+                                    nvidiaCscVal
+                                );
+    if(nvidiaTime == -1) {
+        std::cout << "GPU Sparse Matrix Transpostion ALGO1: memory is too low" << std::endl;
+        std::cout << "ALGO1 speedup: -" << std::endl;
+    } else {
+        std::cout << std::setprecision(1) << "ALGO1 speedup: " << serialTime / nvidiaTime << "x" << std::endl;
+    }    
 
-    // cudaDeviceReset();
+    cudaDeviceReset();
 
-    // free(nvidiaCscRowIdx);
-    // free(nvidiaCscColPtr);
-    // free(nvidiaCscVal);
+    free(nvidiaCscRowIdx);
+    free(nvidiaCscColPtr);
+    free(nvidiaCscVal);
 
-    // std::cout << std::endl;
+    std::cout << std::endl;
 
-    // int     *nvidia2CscRowIdx  = (int *)malloc(nnz * sizeof(int));
-    // int     *nvidia2CscColPtr  = (int *)malloc((n + 1) * sizeof(int));
-    // double  *nvidia2CscVal     = (double *)malloc(nnz * sizeof(double));
-    // float   nvidia2Time;
+    int     *nvidia2CscRowIdx  = (int *)malloc(nnz * sizeof(int));
+    int     *nvidia2CscColPtr  = (int *)malloc((n + 1) * sizeof(int));
+    double  *nvidia2CscVal     = (double *)malloc(nnz * sizeof(double));
+    float   nvidia2Time;
 
     // Esecuzione dell'algoritmo di trasposizione versione Nvidia ALGO2
-    // nvidia2Time = performTransposition(
-    //                             nvidia2,
-    //                             m,
-    //                             n,
-    //                             nnz,
-    //                             csrRowPtr,
-    //                             csrColIdx,
-    //                             csrVal,
-    //                             nvidia2CscColPtr,
-    //                             nvidia2CscRowIdx,
-    //                             nvidia2CscVal
-    //                         ); 
+    nvidia2Time = performTransposition(
+                                nvidia2,
+                                m,
+                                n,
+                                nnz,
+                                csrRowPtr,
+                                csrColIdx,
+                                csrVal,
+                                nvidia2CscColPtr,
+                                nvidia2CscRowIdx,
+                                nvidia2CscVal
+                            ); 
 
-    // if(nvidia2Time == -1) {
-    //     std::cout << "GPU Sparse Matrix Transpostion ALGO2: memory is too low" << std::endl;
-    //     std::cout << "ALGO2 speedup: -" << std::endl;
-    // } 
-    // else {
-    //     std::cout << std::setprecision(1) << "ALGO2 speedup: " << serialTime / nvidia2Time << "x" << std::endl;
-    // }
+    if(nvidia2Time == -1) {
+        std::cout << "GPU Sparse Matrix Transpostion ALGO2: memory is too low" << std::endl;
+        std::cout << "ALGO2 speedup: -" << std::endl;
+    } 
+    else {
+        std::cout << std::setprecision(1) << "ALGO2 speedup: " << serialTime / nvidia2Time << "x" << std::endl;
+    }
 
     
 
-    // cudaDeviceReset();
+    cudaDeviceReset();
 
-    // free(nvidia2CscColPtr);
-    // free(nvidia2CscRowIdx);
-    // free(nvidia2CscVal); 
+    free(nvidia2CscColPtr);
+    free(nvidia2CscRowIdx);
+    free(nvidia2CscVal); 
 
-    // std::cout << std::endl;
+    std::cout << std::endl;
 
 
     int     *scanTransCscRowIdx  = (int *)malloc(nnz * sizeof(int));
@@ -193,9 +193,9 @@ int main(int argc, char **argv) {
     free(csrColIdx); 
     free(csrVal);
 
-    // free(serialCscRowIdx);
-    // free(serialCscColPtr);
-    // free(serialCscVal);   
+    free(serialCscRowIdx);
+    free(serialCscColPtr);
+    free(serialCscVal);   
 }
 
 int checkResults(int m, int *arrayA, int *arrayB) {

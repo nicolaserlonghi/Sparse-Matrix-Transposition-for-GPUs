@@ -16,7 +16,7 @@ const int NUM_THREADS = 128;
 }
 
 __global__
-void transpostionSpeedKernel(
+void histogram(
     int     m,
     int     n,
     int     nnz,
@@ -148,7 +148,7 @@ void transpostionSpeedKernel(
 }
 
 __global__
-void transpostionSpeedKernel1(
+void verticalScan(
     int     m,
     int     n,
     int     nnz,
@@ -169,7 +169,7 @@ void transpostionSpeedKernel1(
     while(global_id < bestNumThread) {
         if (global_id < n) {
             for(int j = 1; j < (bestNumThread + 1); j++) {
-                //inter[global_id + (n * j)] += inter[global_id + (n * (j-1))];
+                inter[global_id + (n * j)] += inter[global_id + (n * (j-1))];
             }
         }
         global_id += nthreads;
@@ -422,7 +422,7 @@ int manageMemoryForScan(int numElements){
 
 
 __global__ 
-void transpostionSpeedKernel3(
+void writeBack(
     int     m,
     int     n,
     int     nnz,
@@ -577,9 +577,9 @@ float scanTrans(
     int minGridSize3;
     int gridSize3;
 
-    cudaOccupancyMaxPotentialBlockSize(&minGridSize1, &blockSize1, transpostionSpeedKernel, 0, biggest);
-    cudaOccupancyMaxPotentialBlockSize(&minGridSize2, &blockSize2, transpostionSpeedKernel1, 0, biggest);
-    cudaOccupancyMaxPotentialBlockSize(&minGridSize3, &blockSize3, transpostionSpeedKernel3, 0, biggest);
+    cudaOccupancyMaxPotentialBlockSize(&minGridSize1, &blockSize1, histogram, 0, biggest);
+    cudaOccupancyMaxPotentialBlockSize(&minGridSize2, &blockSize2, verticalScan, 0, biggest);
+    cudaOccupancyMaxPotentialBlockSize(&minGridSize3, &blockSize3, writeBack, 0, biggest);
 
     gridSize1 = (biggest + blockSize1 - 1) / blockSize1;
     gridSize2 = (biggest + blockSize2 - 1) / blockSize2;
@@ -595,7 +595,7 @@ float scanTrans(
     // dim3 DimGrid(blockNum, 1, 1);
     // dim3 DimBlock(NUM_THREADS, 1, 1);
 
-    transpostionSpeedKernel<<<gridSize1, blockSize1>>>(m, n, nnz, d_csrRowPtr, d_csrColIdx, d_cscColPtr, d_csrRowIdx, d_intra, d_inter, inter_dim);
+    histogram<<<gridSize1, blockSize1>>>(m, n, nnz, d_csrRowPtr, d_csrColIdx, d_cscColPtr, d_csrRowIdx, d_intra, d_inter, inter_dim);
 
     cudaDeviceSynchronize();
     CHECK_CUDA_ERROR
@@ -603,7 +603,7 @@ float scanTrans(
     // non ci servirà più
     cudaFree(d_csrRowPtr);
 
-    transpostionSpeedKernel1<<<gridSize2, blockSize2>>>(m, n, nnz, d_csrColIdx, d_cscColPtr, d_csrRowIdx, d_intra, d_inter);
+    verticalScan<<<gridSize2, blockSize2>>>(m, n, nnz, d_csrColIdx, d_cscColPtr, d_csrRowIdx, d_intra, d_inter);
 
     cudaDeviceSynchronize();
 
@@ -652,7 +652,7 @@ float scanTrans(
 
     cudaDeviceSynchronize();   
     
-    transpostionSpeedKernel3<<<gridSize3, blockSize3>>>(m, n, nnz, d_csrColIdx, d_csrVal, d_cscColPtr, d_cscRowIdx, d_cscVal, d_csrRowIdx, d_intra, d_inter);
+    writeBack<<<gridSize3, blockSize3>>>(m, n, nnz, d_csrColIdx, d_csrVal, d_cscColPtr, d_cscRowIdx, d_cscVal, d_csrRowIdx, d_intra, d_inter);
 
     TM_device.stop();
     cudaDeviceSynchronize();
