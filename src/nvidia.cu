@@ -155,6 +155,7 @@ float nvidia2(
     int     *cscRowIdx,
     double  *cscVal
 ) {
+    cudaError_t err = cudaSuccess;
     cudaSetDevice(0);
     // Check if memory is enough
     double reqMem = (nnz * sizeof(int)) * 2 + (nnz * sizeof(double)) * 2 + (m+1) * sizeof(int) + (n+1) * sizeof(int);
