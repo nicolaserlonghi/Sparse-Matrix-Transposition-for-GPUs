@@ -33,4 +33,4 @@ make install
 
 ## Test files
 
-Some test files can be found in the [testFiles folder](./testFiles/). If you want to download others matrices you can find them [here](https://sparse.tamu.edu) and to get them in the right format you have to click on *Matrix Market* button.
+If you want to download others matrices you can find them [here](https://sparse.tamu.edu) and to get them in the right format you have to click on *Matrix Market* button.
