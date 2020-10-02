@@ -1,9 +1,9 @@
-#ifndef _SCAN_SPEED_H
-#define _SCAN_SPEED_H
+#ifndef _SCAN_TRANS_H
+#define _SCAN_TRANS_H
 
 #include <iostream>
 
-float scanSpeed(
+float scanTrans(
     int     m,
     int     n,
     int     nnz,

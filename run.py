@@ -42,26 +42,16 @@ def parseResultAndSaveToFile(resultFile, result, matrixName):
     m = getTextAfterKey(result, "m: ")
     n = getTextAfterKey(result, "n: ")
     nnz = getTextAfterKey(result, "nnz: ")
-    # nvidiaTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO1:")
-    # nvidiaSpeedup = getTextAfterKey(result, "ALGO1 speedup:")
-    # nvidiaTimeAlgo2 = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO2:")
-    # nvidia2Speedup = getTextAfterKey(result, "ALGO2 speedup:")
-    # scanTransCooperativeTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ScanTrans Cooperative:")
-    # scanTransCooperativeSpeedup = getTextAfterKey(result, "ScanTrans Cooperative speedup:")
-    # wrongCooperativeResult = getTextAfterKey(result, "ScanTrans Cooperative wrong: ")
-    # scanTransRowRowTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ScanTrans Row-Row:")
-    # scanTransRowRowSpeedup = getTextAfterKey(result, "ScanTrans Row-Row speedup:")
-    # wrongRowRowResult = getTextAfterKey(result, "ScanTrans Row-Row wrong: ")
+    nvidiaTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO1:")
+    nvidiaSpeedup = getTextAfterKey(result, "ALGO1 speedup:")
+    nvidiaTimeAlgo2 = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO2:")
+    nvidia2Speedup = getTextAfterKey(result, "ALGO2 speedup:")
     scanTransTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ScanTrans:")
     scanTransSpeedup = getTextAfterKey(result, "ScanTrans speedup:")
     wrongResult = getTextAfterKey(result, "ScanTrans wrong: ")
-    scanSpeedTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ScanSpeed:")
-    scanSpeedSpeedup = getTextAfterKey(result, "ScanSpeed speedup:")
-    wrongSpeedResult = getTextAfterKey(result, "ScanSpeed wrong: ")
     fileLine = matrixName + "; " + matrixType + "; " +  \
                     m + "; " + n + "; " + nnz + "; " + \
-                    scanTransTime + "; " + scanTransSpeedup + "; " + wrongResult + "; " + \
-                    scanSpeedTime + "; " + scanSpeedSpeedup + "; " + wrongSpeedResult + "\n"
+                    scanTransTime + "; " + scanTransSpeedup + "; " + wrongResult + "\n"
     resultFile.write(fileLine)
 
 def executeCommandOnFile(file, path=''):
@@ -78,7 +68,7 @@ def executeCommandOnFile(file, path=''):
 def startTest(paths):
     # save result file
     resultFile = open("results.csv","w")
-    resultFile.write("matrix; type; m; n; nnz; scanTrans; speedup; wrong; scanSpeed; speedup; wrong\n")
+    resultFile.write("matrix; type; m; n; nnz; scanTrans; speedup; wrong;\n")
     for path in paths:
         if(os.path.isfile(path)):
             file = ntpath.basename(path)

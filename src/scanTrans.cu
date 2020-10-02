@@ -1,4 +1,4 @@
-#include <scanSpeed.h>
+#include <scanTrans.h>
 #include <utilities.h>
 #include <Timer.cuh>
 #include "CheckError.cuh"
@@ -465,7 +465,7 @@ void transpostionSpeedKernel3(
 }
 
 
-float scanSpeed(
+float scanTrans(
     int     m,
     int     n,
     int     nnz,
@@ -656,7 +656,7 @@ float scanSpeed(
 
     TM_device.stop();
     cudaDeviceSynchronize();
-    TM_device.print("GPU Sparse Matrix Transpostion ScanSpeed: ");    
+    TM_device.print("GPU Sparse Matrix Transpostion ScanTrans: ");    
   
     cudaMemcpy(cscColPtr, d_cscColPtr, (n+1) * sizeof(int),  cudaMemcpyDeviceToHost);
     cudaMemcpy(cscRowIdx, d_cscRowIdx, nnz * sizeof(int),    cudaMemcpyDeviceToHost);

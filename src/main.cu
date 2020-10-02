@@ -4,7 +4,7 @@
 #include <utilities.h>
 #include <serial.h>
 #include <nvidia.h>
-#include <scanSpeed.h>
+#include <scanTrans.h>
 
 int checkResults(int m, int *arrayA, int *arrayB);
 int checkResults(int m, double *arrayA, double *arrayB);
@@ -124,68 +124,68 @@ int main(int argc, char **argv) {
     // std::cout << std::endl;
 
 
-    int     *scanSpeedCscRowIdx  = (int *)malloc(nnz * sizeof(int));
-    int     *scanSpeedCscColPtr  = (int *)malloc((n + 1) * sizeof(int));
-    double  *scanSpeedCscVal     = (double *)malloc(nnz * sizeof(double));
-    float   scanSpeedTime;
+    int     *scanTransCscRowIdx  = (int *)malloc(nnz * sizeof(int));
+    int     *scanTransCscColPtr  = (int *)malloc((n + 1) * sizeof(int));
+    double  *scanTransCscVal     = (double *)malloc(nnz * sizeof(double));
+    float   scanTransTime;
 
-    // Esecuzione dell'algoritmo di trasposizione versione articolo scanSpeed
-    scanSpeedTime = performTransposition(
-                                        scanSpeed,
+    // Esecuzione dell'algoritmo di trasposizione versione articolo scanTrans
+    scanTransTime = performTransposition(
+                                        scanTrans,
                                         m,
                                         n,
                                         nnz,
                                         csrRowPtr,
                                         csrColIdx,
                                         csrVal,
-                                        scanSpeedCscColPtr,
-                                        scanSpeedCscRowIdx,
-                                        scanSpeedCscVal
+                                        scanTransCscColPtr,
+                                        scanTransCscRowIdx,
+                                        scanTransCscVal
     ); 
 
-    if(scanSpeedTime == -1) {
-        std::cout << "GPU Sparse Matrix Transpostion ScanSpeed: memory is too low" << std::endl;
-        std::cout << "ScanSpeed wrong: -" << std::endl;
-        std::cout << "ScanSpeed speedup: -" << std::endl;
+    if(scanTransTime == -1) {
+        std::cout << "GPU Sparse Matrix Transpostion ScanTrans: memory is too low" << std::endl;
+        std::cout << "ScanTrans wrong: -" << std::endl;
+        std::cout << "ScanTrans speedup: -" << std::endl;
     } 
 
-    if(scanSpeedTime == -2) {
-        std::cout << "GPU Sparse Matrix Transpostion ScanSpeed: max blocks num reached" << std::endl;
-        std::cout << "ScanSpeed wrong: -" << std::endl;
-        std::cout << "ScanSpeed speedup: -" << std::endl;
+    if(scanTransTime == -2) {
+        std::cout << "GPU Sparse Matrix Transpostion ScanTrans: max blocks num reached" << std::endl;
+        std::cout << "ScanTrans wrong: -" << std::endl;
+        std::cout << "ScanTrans speedup: -" << std::endl;
     } 
 
-    if(scanSpeedTime == -3) {
-        std::cout << "GPU Sparse Matrix Transpostion ScanSpeed: max threads num reached" << std::endl;
-        std::cout << "ScanSpeed wrong: -" << std::endl;
-        std::cout << "ScanSpeed speedup: -" << std::endl;
+    if(scanTransTime == -3) {
+        std::cout << "GPU Sparse Matrix Transpostion ScanTrans: max threads num reached" << std::endl;
+        std::cout << "ScanTrans wrong: -" << std::endl;
+        std::cout << "ScanTrans speedup: -" << std::endl;
     } 
 
-    if (scanSpeedTime != -1) {
-        std::cout << std::setprecision(1) << "ScanSpeed speedup: " << serialTime / scanSpeedTime << "x" << std::endl;
-        std::cout << "check cscColPtr ScanSpeed ";
-        // scanSpeedTime = checkResults(n + 1, serialCscColPtr, scanSpeedCscColPtr);            
+    if (scanTransTime != -1) {
+        std::cout << std::setprecision(1) << "ScanTrans speedup: " << serialTime / scanTransTime << "x" << std::endl;
+        std::cout << "check cscColPtr ScanTrans ";
+        // scanTransTime = checkResults(n + 1, serialCscColPtr, scanTransCscColPtr);            
     }
 
-    if (scanSpeedTime != -1) {
-        std::cout << "\ncheck cscRowIdx ScanSpeed ";
-        // scanSpeedTime = checkResults(nnz, serialCscRowIdx, scanSpeedCscRowIdx);
+    if (scanTransTime != -1) {
+        std::cout << "\ncheck cscRowIdx ScanTrans ";
+        // scanTransTime = checkResults(nnz, serialCscRowIdx, scanTransCscRowIdx);
     }
 
-    if (scanSpeedTime != -1) {
-        std::cout << "\ncheck cscVal ScanSpeed ";
-        // scanSpeedTime = checkResults(nnz, serialCscVal, scanSpeedCscVal);
+    if (scanTransTime != -1) {
+        std::cout << "\ncheck cscVal ScanTrans ";
+        // scanTransTime = checkResults(nnz, serialCscVal, scanTransCscVal);
     }
 
-    if (scanSpeedTime != -1) {
+    if (scanTransTime != -1) {
         std::cout << "wrong: 0" << std::endl;
     }    
 
     cudaDeviceReset();
 
-    free(scanSpeedCscRowIdx);
-    free(scanSpeedCscColPtr);
-    free(scanSpeedCscVal);
+    free(scanTransCscRowIdx);
+    free(scanTransCscColPtr);
+    free(scanTransCscVal);
 
     std::cout << std::endl;
 
