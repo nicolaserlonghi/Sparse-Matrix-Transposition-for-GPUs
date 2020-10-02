@@ -6,26 +6,23 @@
 #include <nvidia.h>
 #include <scanTrans.h>
 
-bool checkAllResults(SerialResult serialResult, ScanTransResult scanTransResult);
-void checkResults(int m, int *arrayA, int *arrayB);
-void checkResults(int m, double *arrayA, double *arrayB);
+using namespace std;
 
+int *serialCscRowIdx;
+int *serialCscColPtr;
+double *serialCscVal;
+float serialTime;
+
+// Function prototype
+void serialAlgo(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal);
 void nvidiaAlgo1(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal);
 void nvidiaAlgo2(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal);
 void scanTrans(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal);
+bool checkAllResults(
+    int *scanTransCscRowIdx, int *scanTransCscColPtr, double *scanTransCscVal,int n, int nnz);
+bool checkResultsIsWrong(int m, int *arrayA, int *arrayB);
+bool checkResultsIsWrong(int m, double *arrayA, double *arrayB);
 
-
-struct ScanTransResult {
-    int *cscRowIdx;
-    int *cscColPtr;
-    double *cscVal;
-};
-
-struct SerialResult {
-    int *serialCscRowIdx;
-    int *serialCscColPtr;
-    double *serialCscVal;
-} serialResult;
 
 int main(int argc, char **argv) {
     char *filename = detectFile(argc, argv[1]);    
@@ -36,21 +33,31 @@ int main(int argc, char **argv) {
     int *csrColIdx;
     double *csrVal;
 
-    readMatrix(
-        filename,
-        m,
-        n,
-        nnz,
-        csrRowPtr,
-        csrColIdx,
-        csrVal
-    );
+    readMatrix(filename, m, n, nnz, csrRowPtr, csrColIdx, csrVal);
+    serialAlgo(m, n, nnz, csrRowPtr, csrColIdx, csrVal);
+    cout << endl;
+    nvidiaAlgo1(m, n, nnz, csrRowPtr, csrColIdx, csrVal);
+    cout << endl;
+    nvidiaAlgo2(m, n, nnz, csrRowPtr, csrColIdx, csrVal); 
+    cout << endl;
+    scanTrans(m, n, nnz, csrRowPtr, csrColIdx, csrVal);
+    cout << endl;
 
-    // Serial algorithm
-    // serialResult.serialCscRowIdx = (int *)malloc(nnz * sizeof(int));
-    // serialResult.serialCscColPtr = (int *)malloc((n + 1) * sizeof(int));
-    // serialResult.serialCscVal = (double *)malloc(nnz * sizeof(double));
-    float serialTime = performTransposition(
+    // Cleaner
+    free(csrRowPtr); 
+    free(csrColIdx); 
+    free(csrVal);
+    free(serialCscRowIdx);
+    free(serialCscColPtr);
+    free(serialCscVal);
+    return 0; 
+}
+
+void serialAlgo(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal) {
+    serialCscRowIdx = (int *)malloc(nnz * sizeof(int));
+    serialCscColPtr = (int *)malloc((n + 1) * sizeof(int));
+    serialCscVal = (double *)malloc(nnz * sizeof(double));
+    serialTime = performTransposition(
         serial,
         m,
         n,
@@ -62,24 +69,6 @@ int main(int argc, char **argv) {
         serialCscRowIdx,
         serialCscVal
     );
-    std::cout << std::endl;
-
-    nvidiaAlgo1(m, n, nnz, csrRowPtr, csrColIdx, csrVal);
-    std::cout << std::endl;
-    
-    nvidiaAlgo2(m, n, nnz, csrRowPtr, csrColIdx, csrVal); 
-    std::cout << std::endl;
-
-    scanTransResult = scanTrans(m, n, nnz, *csrRowPtr, *csrColIdx, *csrVal);
-    std::cout << std::endl;
-
-    free(csrRowPtr); 
-    free(csrColIdx); 
-    free(csrVal);
-
-    // free(serialCscRowIdx);
-    // free(serialCscColPtr);
-    // free(serialCscVal);   
 }
 
 void nvidiaAlgo1(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal) {
@@ -99,10 +88,10 @@ void nvidiaAlgo1(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *
         nvidiaAlgo1CscVal
     );
     if(nvidiaAlgo1Time == -1) {
-        std::cout << "GPU Sparse Matrix Transpostion ALGO1: memory is too low" << std::endl;
-        std::cout << "ALGO1 speedup: -" << std::endl;
+        cout << "GPU Sparse Matrix Transpostion ALGO1: memory is too low" << endl;
+        cout << "ALGO1 speedup: -" << endl;
     } else {
-        std::cout << std::setprecision(1) << "ALGO1 speedup: " << serialTime / nvidiaAlgo1Time << "x" << std::endl;
+        cout << setprecision(1) << "ALGO1 speedup: " << serialTime / nvidiaAlgo1Time << "x" << endl;
     }
     // Cleaning device
     cudaDeviceReset();
@@ -129,24 +118,23 @@ void nvidiaAlgo2(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *
     ); 
 
     if(nvidiaAlgo2Time == -1) {
-        std::cout << "GPU Sparse Matrix Transpostion ALGO2: memory is too low" << std::endl;
-        std::cout << "ALGO2 speedup: -" << std::endl;
+        cout << "GPU Sparse Matrix Transpostion ALGO2: memory is too low" << endl;
+        cout << "ALGO2 speedup: -" << endl;
     } 
     else {
-        std::cout << std::setprecision(1) << "ALGO2 speedup: " << serialTime / nvidiaAlgo2Time << "x" << std::endl;
+        cout << setprecision(1) << "ALGO2 speedup: " << serialTime / nvidiaAlgo2Time << "x" << endl;
     }
     // Cleaning device
     cudaDeviceReset();
-    free(nvidia2CscColPtr);
-    free(nvidia2CscRowIdx);
-    free(nvidia2CscVal);
+    free(nvidiaAlgo2CscColPtr);
+    free(nvidiaAlgo2CscRowIdx);
+    free(nvidiaAlgo2CscVal);
 }
 
 void scanTrans(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal) {
-    ScanTransResult scanTransResult;
-    scanTransResult.cscRowIdx = (int *)malloc(nnz * sizeof(int));
-    scanTransResult.cscColPtr = (int *)malloc((n + 1) * sizeof(int));
-    scanTransResult.cscVal = (double *)malloc(nnz * sizeof(double));
+    int *cscRowIdx = (int *)malloc(nnz * sizeof(int));
+    int *cscColPtr = (int *)malloc((n + 1) * sizeof(int));
+    double *cscVal = (double *)malloc(nnz * sizeof(double));
     float scanTransTime = performTransposition(
         scanTrans,
         m,
@@ -155,36 +143,49 @@ void scanTrans(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *cs
         csrRowPtr,
         csrColIdx,
         csrVal,
-        scanTransCscColPtr,
-        scanTransCscRowIdx,
-        scanTransCscVal
+        cscColPtr,
+        cscRowIdx,
+        cscVal
     ); 
     if(scanTransTime == -1) {
-        std::cout << "GPU Sparse Matrix Transpostion ScanTrans: memory is too low" << std::endl;
-        std::cout << "ScanTrans wrong: -" << std::endl;
-        std::cout << "ScanTrans speedup: -" << std::endl;
+        cout << "GPU Sparse Matrix Transpostion ScanTrans: memory is too low" << endl;
+        cout << "ScanTrans wrong: -" << endl;
+        cout << "ScanTrans speedup: -" << endl;
     } else {
-        bool isWrong = checkAllResults(serialResult, scanTransResult);
-        if(wrong)
-            std::exit(EXIT_FAILURE);
+        bool isWrong = checkAllResults(
+            cscRowIdx, 
+            cscColPtr,
+            cscVal,
+            n, 
+            nnz
+        );
+        cout << "wrong: " << isWrong << endl;
+        if(isWrong)
+            exit(EXIT_FAILURE);
         else
-            std::cout << std::setprecision(2) << "ScanTrans speedup: " << serialTime / scanTransTime << "x" << std::endl;
+            cout << setprecision(1) << "ScanTrans speedup: " << serialTime / scanTransTime << "x" << endl;
     }
     // Cleaning device
     cudaDeviceReset();
-    // free(scanTransCscRowIdx);
-    // free(scanTransCscColPtr);
-    // free(scanTransCscVal);
+    free(cscRowIdx);
+    free(cscColPtr);
+    free(cscVal);
 }
 
-bool checkAllResults(SerialResult serialResult, ScanTransResult scanTransResult) {
-    bool wrong = false;
-    wrong = checkResults(n + 1, serialResult.serialCscColPtr, scanTransResult.cscColPtr);
-    if(wrong) return wrong;
-    wrong = checkResults(nnz, serialResult.serialCscRowIdx, scanTransResult.cscRowIdx);
-    if(wrong) return wrong;
-    wrong = checkResults(nnz, serialResult.serialCscVal, scanTransResult.cscVal);
-    if(wrong) return wrong;
+bool checkAllResults(
+    int *scanTransCscRowIdx,
+    int *scanTransCscColPtr,
+    double *scanTransCscVal,
+    int n,
+    int nnz
+) {
+    bool isWrong = false;
+    isWrong = checkResultsIsWrong(n + 1, serialCscColPtr, scanTransCscColPtr);
+    if(isWrong) return isWrong;
+    isWrong = checkResultsIsWrong(nnz, serialCscRowIdx, scanTransCscRowIdx);
+    if(isWrong) return isWrong;
+    isWrong = checkResultsIsWrong(nnz, serialCscVal, scanTransCscVal);
+    if(isWrong) return isWrong;
 }
 
 bool checkResultsIsWrong(int m, int *arrayA, int *arrayB) {

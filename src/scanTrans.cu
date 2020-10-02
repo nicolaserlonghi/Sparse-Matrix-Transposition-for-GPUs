@@ -28,87 +28,13 @@ void histogram(
     int     *inter,
     int     inter_dim
 ) {
-
     int global_id = blockIdx.x * blockDim.x + threadIdx.x;
     int nthreads = blockDim.x * gridDim.x;
     int start;
     
 
-    // prendo l'equivalente di biggest della versione seriale
-    int  bestNumThread = n > m ? n : m;
-    // se biggest è maggiore del numero di thread che ho allocato vuol dire che sarei uscita
-    // quindi prendo nthreads (altrimenti detto come "prendo il più piccolo tra bestNumThread e nthreads")
-    bestNumThread = inter_dim;
-    if (global_id == 0) {
-        printf("%d\n", bestNumThread);
-    }
-    
-    int len;
-
-    // if(global_id < bestNumThread) {
-    //     len = nnz / bestNumThread;        
-    //     // partizioniamo il numero di nnz tra i thread
-    //     if ( global_id < nnz % bestNumThread) {                
-    //         len++;
-    //         start = len * global_id;                 
-    //     }
-    //     else {
-    //         start = len * global_id + (nnz % bestNumThread);    
-    //     }
-        
-    //     if (global_id < m) {
-    //         for(int j = csrRowPtr[global_id]; j < csrRowPtr[global_id + 1]; j++) {
-    //             csrRowIdx[j] = global_id;
-    //         }
-    //     }       
-        
-    //     for(int i = 0; i < len; i++) {
-    //         int index = csrColIdx[start + i];
-    //         int brutto = (global_id + 1) * n + index;
-    //         intra[start + i] = inter[brutto];
-    //         inter[brutto]++;
-    //     }
-    //     // global_id += nthreads;
-
-    
-
-    //     // for(int i = 0; i < len; i++) {
-    //     //     int index = csrColIdx[start + i];
-    //     //     long long int a = global_id;
-    //     //     long long int b = n;
-    //     //     long long int c = index;
-    //     //     long long int brutto = (a + 1) * b + c;
-    //     //     if(brutto > global_id || brutto < 0) {
-    //     //         int *ptr = &inter[brutto];
-    //     //         // if (x%2048)  ptr = &inter[((global_id + 1) * x + index) + 1];
-    //     //         brutto = (global_id + 1) * x + index;
-    //     //         intra[start + i] = ptr[brutto];
-    //     //         ptr[brutto]++;
-    //     //     } else {
-    //     //         intra[start + i] = inter[brutto];
-    //     //         inter[brutto]++;
-    //     //     }
-    //     // }
-    //     // global_id += nthreads;
-    // }
-
-
-
-
-    /* int global_id = blockIdx.x * blockDim.x + threadIdx.x;
-    int nthreads = blockDim.x * gridDim.x;
-    int start;
-    
-
     int  bestNumThread = n > m ? n : m;
     int len;
-
-    if (global_id == 0) {
-        printf("%ld\n", n * (m - 2));
-        printf("%ld\n", n * (m - 1));
-        printf("%ld\n", n * (m));
-        printf("%d\n", n * (m +1));
-    }
 
     while(global_id < bestNumThread) {
         len = nnz / bestNumThread;
@@ -130,21 +56,14 @@ void histogram(
      
 
         for(int i = 0; i < len; i++) {
-            long index = csrColIdx[start + i];
-            // if ( ((global_id + 1) * n + index ) < ((global_id + 1) * n + n) ) {
-            
-                // printf("%d - %d - %d - %d - %d\n", global_id, len, csrColIdx[start + i], start, (global_id + 1) * n);
-                // int index = 0;
-                // printf("%d =  %d * %d + %d --> len: %d\n", (global_id + 1) * n + index, global_id, n, index, len);
-                long a = (global_id + 1) * n + index;
-                // printf("global_id: %d, -> (%d + 1) * %d + %d =  a: %ld --> len: %d, start: %d\n", global_id, global_id, n, index, a, len, start);
-                // intra[start + i] = *(inter + a);
-                // *(inter + a) += 1;
-            // }
+            int index = csrColIdx[start + i];
+            // printf("inter[%d]: %d , global: %d, nthre: %d, len:%d, start: %d\n", (global_id + 1) * n + index, inter[(global_id + 1) * n + index], global_id, nthreads, len, start);
+            intra[start + i] = inter[(global_id + 1) * n + index];
+            inter[(global_id + 1) * n + index]++;
         } 
         // printf("pref: %d, after: %d \n", global_id, global_id + nthreads);
         global_id += nthreads;
-    } */
+    }
 }
 
 __global__
@@ -661,7 +580,7 @@ float scanTrans(
     cudaMemcpy(cscColPtr, d_cscColPtr, (n+1) * sizeof(int),  cudaMemcpyDeviceToHost);
     cudaMemcpy(cscRowIdx, d_cscRowIdx, nnz * sizeof(int),    cudaMemcpyDeviceToHost);
     cudaMemcpy(cscVal,    d_cscVal,    nnz * sizeof(double), cudaMemcpyDeviceToHost);
-    
+
     cudaFree(d_csrColIdx);
     cudaFree(d_csrVal);
 
