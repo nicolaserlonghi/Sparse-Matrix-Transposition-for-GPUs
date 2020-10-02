@@ -9,7 +9,7 @@ The build process tool of the project is Makefile. The following are the steps t
 2. If your device have python3 installed do this step and you have done otherwise go direct to the step three.
 
 ```
-python3 run.py [folder that contains matrixs.mtx][single matrix.mtx]
+python3 run.py [folder that contains matrices.mtx][single matrix.mtx]
 ```
 
 3. if you got here it means you don't have python3 so let's do it by hand.
@@ -27,4 +27,4 @@ make install
 
 ## Test files
 
-Some test files can be found in the [testFiles folder](./testFiles/). If you want to download others matrixs you can find them [here](https://sparse.tamu.edu) and to get them in the right format you have to click on *Matrix Market* button.
+Some test files can be found in the [testFiles folder](./testFiles/). If you want to download others matrices you can find them [here](https://sparse.tamu.edu) and to get them in the right format you have to click on *Matrix Market* button.
