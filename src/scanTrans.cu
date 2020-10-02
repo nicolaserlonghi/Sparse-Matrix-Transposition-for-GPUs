@@ -15,6 +15,20 @@ const int NUM_THREADS = 128;
     }\
 }
 
+// For BCAO
+#define NUM_BANKS 32
+#define LOG_NUM_BANKS 5
+
+#define ZERO_BANK_CONFLICTS
+    #ifdef ZERO_BANK_CONFLICTS
+        #define CONFLICT_FREE_OFFSET(n) ( ((n) >> LOG_NUM_BANKS) + ((n) >> (2 * LOG_NUM_BANKS)) )
+    #else
+        #define CONFLICT_FREE_OFFSET(n) ((n) >> LOG_NUM_BANKS)
+#endif
+// You need extra shared memory space if using BCAO because of
+// the padding. Note this is the number of WORDS of padding:
+#define EXTRA (CONFLICT_FREE_OFFSET((NUM_THREADS * 2 - 1))
+
 __global__
 void histogram(
     int     m,
@@ -25,8 +39,7 @@ void histogram(
     int     *cscColPtr,
     int     *csrRowIdx,
     int     *intra,
-    int     *inter,
-    int     inter_dim
+    int     *inter
 ) {
     int global_id = blockIdx.x * blockDim.x + threadIdx.x;
     int nthreads = blockDim.x * gridDim.x;
@@ -118,51 +131,63 @@ void uniformAdd(int *outputArray, int numElements, int *INCR){
 	}
 }
 
-// Block prescan that works on any array length on NUM_THREADS * 2 length blocks
 __global__
-void blockPrescan(int *g_idata, int *g_odata, int n, int *SUM)
-{
-	__shared__ int temp[NUM_THREADS << 1]; // allocated on invocation
+void BCAO_blockPrescan(int *g_idata, int *g_odata, int n, int *SUM) {
+	__shared__ int temp[NUM_THREADS * 2 + (NUM_THREADS)]; // allocated on invocation
 	int thid = threadIdx.x;
 	int offset = 1;
 	int blockOffset = NUM_THREADS * blockIdx.x * 2;
 
-//	 Copy the correct elements form the global array
-	if (blockOffset + (thid * 2) < n){
-        temp[thid * 2] = g_idata[blockOffset + (thid * 2)];
+	// Create the correct offsets for BCAO
+	int ai = thid;
+	int bi = thid + NUM_THREADS;
+
+	int bankOffsetA = CONFLICT_FREE_OFFSET(ai);
+	int bankOffsetB = CONFLICT_FREE_OFFSET(bi);
+
+	// Copy the correct elements form the global array
+	if (blockOffset + ai < n){
+		temp[ai + bankOffsetA] = g_idata[blockOffset + ai]; // load input into shared memory
 	}
-	if (blockOffset + (thid * 2) + 1 < n){
-        temp[(thid * 2)+1] = g_idata[blockOffset + (thid * 2)+1];
+	if (blockOffset + bi < n){
+		temp[bi + bankOffsetB] = g_idata[blockOffset + bi];
 	}
 
-//	 Build sum in place up the tree
+	// Build sum in place up the tree
 	for (int d = NUM_THREADS; d > 0; d >>= 1){
 		__syncthreads();
 
 		if (thid < d){
-			int ai = offset*((thid * 2)+1)-1;
-			int bi = offset*((thid * 2)+2)-1;
+			int ai = offset*(2*thid+1)-1;
+			int bi = offset*(2*thid+2)-1;
+
+			ai += CONFLICT_FREE_OFFSET(ai);
+			bi += CONFLICT_FREE_OFFSET(bi);
+
 			temp[bi] += temp[ai];
 		}
-		offset <<= 1;
+		offset *= 2;
 	}
 
 	if (thid == 0) {
 		if(SUM != NULL){
 			// If doing a FULL scan, save the last value in the SUMS array for later processing
-			SUM[blockIdx.x] = temp[(NUM_THREADS << 1) - 1];
+			SUM[blockIdx.x] = temp[(NUM_THREADS * 2) - 1 + CONFLICT_FREE_OFFSET((NUM_THREADS * 2) - 1)];
 		}
-		temp[(NUM_THREADS << 1) - 1] = 0; // clear the last element
+		temp[(NUM_THREADS * 2) - 1 + CONFLICT_FREE_OFFSET((NUM_THREADS * 2) - 1)] = 0; // clear the last element
 	}
 
-//	 Traverse down tree & build scan
-	for (int d = 1; d < NUM_THREADS << 1; d <<= 1){
+	// Traverse down tree & build scan
+	for (int d = 1; d < NUM_THREADS * 2; d *= 2){
 		offset >>= 1;
 		__syncthreads();
 
 		if (thid < d){
-			int ai = offset*((thid * 2)+1)-1;
-			int bi = offset*((thid * 2)+2)-1;
+			int ai = offset*(2*thid+1)-1;
+			int bi = offset*(2*thid+2)-1;
+
+			ai += CONFLICT_FREE_OFFSET(ai);
+			bi += CONFLICT_FREE_OFFSET(bi);
 
 			int t = temp[ai];
 			temp[ai] = temp[bi];
@@ -170,20 +195,19 @@ void blockPrescan(int *g_idata, int *g_odata, int n, int *SUM)
 		}
 	}
 
-//	 Copy the new array back to global array
+	// Copy the new array back to global array
 	__syncthreads();
-	if (blockOffset + (thid * 2) < n){
-        g_odata[blockOffset + (thid * 2)] = temp[(thid * 2)]; // write results to device memory
+	if (blockOffset + ai < n){
+		g_odata[blockOffset + ai] = temp[ai + bankOffsetA]; // write results to device memory
 	}
-	if (blockOffset + (thid * 2) + 1 < n){
-        g_odata[blockOffset + ((thid * 2)+1)] = temp[(thid * 2)+1];
+	if (blockOffset + bi < n){
+		g_odata[blockOffset + bi] = temp[bi + bankOffsetB];
 	}
 }
 
 
-void fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
-
-    
+__host__
+void BCAO_fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
 	// Error code to check return values for CUDA calls
 	cudaError_t err = cudaSuccess;
 
@@ -192,16 +216,15 @@ void fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
 	// The number of blocks it would take to process the array at each level
 	int blocksPerGridL1 = 1 + (numElements - 1) / (NUM_THREADS * 2);
 	int blocksPerGridL2 = 1 + blocksPerGridL1 / (NUM_THREADS * 2);
-    int blocksPerGridL3 = 1 + blocksPerGridL2 / (NUM_THREADS * 2);
-
+	int blocksPerGridL3 = 1 + blocksPerGridL2 / (NUM_THREADS * 2);
 
 	// int *d_input = NULL;
 	// err = cudaMalloc((void **) &d_input, size);
-    // CUDA_ERROR(err, "Failed to allocate device array x");    
+	// CUDA_ERROR(err, "Failed to allocate device array x");
 
 	// int *d_cscColPtr = NULL;
 	// err = cudaMalloc((void**) &d_cscColPtr, size);
-    // CUDA_ERROR(err, "Failed to allocate device array y");
+	// CUDA_ERROR(err, "Failed to allocate device array y");
 
 	// Only define in here and actually allocate memory to these arrays if needed
 	int *d_SUMS_LEVEL1 = NULL;
@@ -210,31 +233,32 @@ void fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
 	int *d_INCR_LEVEL2 = NULL;
 
 	// err = cudaMemcpy(d_input, input, size, cudaMemcpyHostToDevice);
-    // CUDA_ERROR(err, "Failed to copy array x from host to device");
+	// CUDA_ERROR(err, "Failed to copy array x from host to device");
 
 
-    //-----------------Pick the correct level and execute the kernels----------
-    
-    Timer<DEVICE> TM_kernelNew;
-    TM_kernelNew.start();
+	//-----------------Pick the correct level and execute the kernels----------
+
+  Timer<DEVICE> TM_kernelNew;
+  TM_kernelNew.start();
 
 	// The correct level is going to be where the SUMS array can be prescanned with only one block
 	if(blocksPerGridL1 == 1){
-	    blockPrescan<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, NULL);
-        cudaDeviceSynchronize();
+
+	    BCAO_blockPrescan<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, NULL);
+
 	} else if (blocksPerGridL2 == 1) {
-        
+
 		// SUMS and INCR arrays need to be allocated to store intermediate values
-        err = cudaMalloc((void**) &d_SUMS_LEVEL1, blocksPerGridL1 * sizeof(int));
+		err = cudaMalloc((void**) &d_SUMS_LEVEL1, blocksPerGridL1 * sizeof(int));
 		CUDA_ERROR(err, "Failed to allocate device vector d_SUMS_LEVEL1");
 
-		err = cudaMalloc((void**) &d_INCR_LEVEL1, blocksPerGridL1 * sizeof(int));
-        CUDA_ERROR(err, "Failed to allocate device vector d_INCR_LEVEL1");
-        
-		blockPrescan<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, d_SUMS_LEVEL1);
+		err = cudaMalloc((void**) &d_INCR_LEVEL1, size);
+		CUDA_ERROR(err, "Failed to allocate device vector d_INCR");
+
+		BCAO_blockPrescan<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, d_SUMS_LEVEL1);
 
 		// Run a second prescan on the SUMS array
-		blockPrescan<<<blocksPerGridL2, NUM_THREADS>>>(d_SUMS_LEVEL1, d_INCR_LEVEL1, blocksPerGridL1, NULL);
+		BCAO_blockPrescan<<<blocksPerGridL2, NUM_THREADS>>>(d_SUMS_LEVEL1, d_INCR_LEVEL1, blocksPerGridL1, NULL);
 
 		// Add the values of INCR array to the corresponding blocks of the d_cscColPtr array
 		uniformAdd<<<blocksPerGridL1, NUM_THREADS>>>(d_cscColPtr, numElements, d_INCR_LEVEL1);
@@ -242,24 +266,25 @@ void fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
 		cudaDeviceSynchronize();
 
 	} else if (blocksPerGridL3 == 1) {
+
 		// SUMS and INCR arrays need to be allocated to store intermediate values
 		err = cudaMalloc((void**) &d_SUMS_LEVEL1, blocksPerGridL1 * sizeof(int));
 		CUDA_ERROR(err, "Failed to allocate device vector d_SUMS_LEVEL1");
 
-		err = cudaMalloc((void**) &d_SUMS_LEVEL2, (NUM_THREADS * 2) * sizeof(int));
+		err = cudaMalloc((void**) &d_SUMS_LEVEL2, blocksPerGridL1 * sizeof(int));
 		CUDA_ERROR(err, "Failed to allocate device vector d_SUMS_LEVEL2");
 
-		err = cudaMalloc((void**) &d_INCR_LEVEL1, blocksPerGridL1 * sizeof(int));
+		err = cudaMalloc((void**) &d_INCR_LEVEL1, size);
 		CUDA_ERROR(err, "Failed to allocate device vector d_INCR");
 
-		err = cudaMalloc((void**) &d_INCR_LEVEL2, (NUM_THREADS * 2)* sizeof(int));
+		err = cudaMalloc((void**) &d_INCR_LEVEL2, size);
 		CUDA_ERROR(err, "Failed to allocate device vector d_INCR");
 
-		blockPrescan<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, d_SUMS_LEVEL1);
+		BCAO_blockPrescan<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, d_SUMS_LEVEL1);
 
-		blockPrescan<<<blocksPerGridL2, NUM_THREADS>>>(d_SUMS_LEVEL1, d_INCR_LEVEL1, blocksPerGridL1, d_SUMS_LEVEL2);
+		BCAO_blockPrescan<<<blocksPerGridL2, NUM_THREADS>>>(d_SUMS_LEVEL1, d_INCR_LEVEL1, blocksPerGridL1, d_SUMS_LEVEL2);
 
-		blockPrescan<<<blocksPerGridL3, NUM_THREADS>>>(d_SUMS_LEVEL2, d_INCR_LEVEL2, blocksPerGridL2, NULL);
+		BCAO_blockPrescan<<<blocksPerGridL3, NUM_THREADS>>>(d_SUMS_LEVEL2, d_INCR_LEVEL2, blocksPerGridL2, NULL);
 
 		uniformAdd<<<blocksPerGridL2, NUM_THREADS>>>(d_INCR_LEVEL1, blocksPerGridL1, d_INCR_LEVEL2);
 
@@ -268,26 +293,22 @@ void fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
 		cudaDeviceSynchronize();
 	}else {
 		printf("The array of length = %d is to large for a level 3 FULL prescan\n", numElements);
-    }
+	}
 
-    TM_kernelNew.stop();
-    TM_kernelNew.print("Kernel_new: ");
-    
-    //---------------------------Timing and verification-----------------------
+  TM_kernelNew.stop();
+  TM_kernelNew.print("Kernel_new: ");
 
-    err = cudaGetLastError();
-    CUDA_ERROR(err, "Failed to launch fullPrescan");
+	//---------------------------Timing and verification-----------------------
 
-    // err = cudaMemcpy(cscColPtr, d_cscColPtr, size, cudaMemcpyDeviceToHost);
-    // CUDA_ERROR(err, "Failed to copy array y from device to host");
-
+	err = cudaGetLastError();
+	CUDA_ERROR(err, "Failed to launch block scan kernel");
 
 	//-------------------------------Cleanup-----------------------------------
 	// Free device memory
 	// err = cudaFree(d_input);
 	// CUDA_ERROR(err, "Failed to free device array x");
 	// err = cudaFree(d_cscColPtr);
-    // CUDA_ERROR(err, "Failed to free device array y");
+	// CUDA_ERROR(err, "Failed to free device array y");
 
 	// Only need to free these arrays if they were allocated
 	if(blocksPerGridL2 == 1 || blocksPerGridL3 == 1){
@@ -301,11 +322,13 @@ void fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
 		CUDA_ERROR(err, "Failed to free device array d_SUMS_LEVEL2");
 		err = cudaFree(d_INCR_LEVEL2);
 		CUDA_ERROR(err, "Failed to free device array d_INCR_LEVEL2");
-    }
+	}
+
 
 	// Reset the device
-	//err = cudaDeviceReset();
-    //CUDA_ERROR(err, "Failed to reset the device");
+	// err = cudaDeviceReset();
+	// CUDA_ERROR(err, "Failed to reset the device");
+
 }
 
 
@@ -318,11 +341,11 @@ int manageMemoryForScan(int numElements){
     double nvidiaFreeMemory = getSizeOfNvidiaFreeMemory();
     int clean = 1;
     if (blocksPerGridL1 != 1 && blocksPerGridL2 == 1) {
-        double occupancy = (blocksPerGridL1 * sizeof(int)) * 2;
+        double occupancy = ((blocksPerGridL1 * 2) + (NUM_THREADS * 2 - 1)) * sizeof(int);
         if((nvidiaFreeMemory - occupancy) < 0)
             clean = 0;
     } else if(blocksPerGridL1 != 1 && blocksPerGridL3 == 1) {
-        double occupancy = ((blocksPerGridL1 + (NUM_THREADS * 2)) * sizeof(int)) * sizeof(int);
+        double occupancy = ((blocksPerGridL1 + (NUM_THREADS * 2) + (NUM_THREADS * 2 - 1)) * sizeof(int));
         if((nvidiaFreeMemory - occupancy) < 0)
             clean = 0;
     }
@@ -398,7 +421,7 @@ float scanTrans(
     Timer<DEVICE> TM_device;
 
     int biggest = m > n ? m : n;
-    int inter_dim = biggest;
+    // int inter_dim = biggest;
 
     int device;
     cudaGetDevice(&device);
@@ -408,10 +431,10 @@ float scanTrans(
 
     int maxThreads = props.multiProcessorCount * props.maxThreadsPerMultiProcessor;
     
-    if (biggest > maxThreads) {
-        inter_dim = 1000;
-    }
-    std::cout << biggest << std::endl;
+    // if (biggest > maxThreads) {
+    //     inter_dim = 1000;
+    // }
+    // std::cout << biggest << std::endl;
     
 
     // int nthreads = biggest / NUM_THREADS;
@@ -483,8 +506,8 @@ float scanTrans(
     cudaMemcpy(d_csrRowPtr, csrRowPtr, (m + 1) * sizeof(int),    cudaMemcpyHostToDevice);
     cudaMalloc(&d_csrRowIdx, nnz                * sizeof(int));
     cudaMalloc(&d_intra,     nnz                * sizeof(int));
-    cudaMalloc(&d_inter,     (inter_dim + 1) * n * sizeof(int));
-    cudaMemset(d_inter,     0, (inter_dim + 1) * n   * sizeof(int));
+    cudaMalloc(&d_inter,     (biggest + 1) * n * sizeof(int));
+    cudaMemset(d_inter,     0, (biggest + 1) * n   * sizeof(int));
 
     int blockSize1;
     int minGridSize1;
@@ -514,7 +537,7 @@ float scanTrans(
     // dim3 DimGrid(blockNum, 1, 1);
     // dim3 DimBlock(NUM_THREADS, 1, 1);
 
-    histogram<<<gridSize1, blockSize1>>>(m, n, nnz, d_csrRowPtr, d_csrColIdx, d_cscColPtr, d_csrRowIdx, d_intra, d_inter, inter_dim);
+    histogram<<<gridSize1, blockSize1>>>(m, n, nnz, d_csrRowPtr, d_csrColIdx, d_cscColPtr, d_csrRowIdx, d_intra, d_inter);
 
     cudaDeviceSynchronize();
     CHECK_CUDA_ERROR
@@ -546,7 +569,7 @@ float scanTrans(
     
     std::cout << "### After: " << getSizeOfNvidiaFreeMemory() << std::endl;
     
-    fullPrescan(d_inter + (n * biggest), d_cscColPtr, n + 1);
+    BCAO_fullPrescan(d_inter + (n * biggest), d_cscColPtr, n + 1);
     
     if(clean == 0) {
         cudaMalloc(&d_intra,     nnz                * sizeof(int));
@@ -591,43 +614,6 @@ float scanTrans(
     cudaFree(d_csrRowIdx);
     cudaFree(d_intra);
     cudaFree(d_inter);
-
-
-      ////////////////////////////////////// For debug ///////////////////////////////////////
-
-    //   //int *intra  = (int *)malloc(nnz * sizeof(int));
-    //   int *inter  = (int *)malloc((biggest + 1) * n * sizeof(int) * sizeof(int));
-    //   //int *csrRowIdx  = (int *)malloc(nnz * sizeof(int));
-    //   cudaMemcpy(intra, d_intra, nnz * sizeof(int), cudaMemcpyDeviceToHost);
-    //   cudaMemcpy(inter, d_inter, (biggest + 1) * n * sizeof(int), cudaMemcpyDeviceToHost);
-    //   cudaMemcpy(csrRowIdx, d_csrRowIdx, nnz * sizeof(int), cudaMemcpyDeviceToHost);
-  
-    //   std::cout << "intra: ";
-    //   for(int i = 0; i < nnz; i++) {
-    //       std::cout << intra[i] << " ";
-    //   }
-    //   std::cout << std::endl;
-  
-    //   std::cout << "inter: ";
-    //   for(int i = 0; i < ((biggest + 1) * n); i++) {
-    //       std::cout << inter[i] << " ";
-    //   }
-    //   std::cout << std::endl;
-      
-    //   std::cout << "csrRowIdx: ";
-    //   for(int i = 0; i < nnz; i++) {
-    //       std::cout << csrRowIdx[i] << " ";
-    //   }
-    //   std::cout << std::endl;
-  
-    //   //free(intra);
-    //   free(inter);
-    //   //free(csrRowIdx);
-  
-      ////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 
     return TM_device.duration(); 
 }

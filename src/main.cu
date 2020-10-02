@@ -1,6 +1,5 @@
 #include <iostream>
 #include <iomanip>
-
 #include <utilities.h>
 #include <serial.h>
 #include <nvidia.h>
@@ -8,12 +7,13 @@
 
 using namespace std;
 
+// Global variables
 int *serialCscRowIdx;
 int *serialCscColPtr;
 double *serialCscVal;
 float serialTime;
 
-// Function prototype
+// Function prototypes
 void serialAlgo(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal);
 void nvidiaAlgo1(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal);
 void nvidiaAlgo2(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *csrVal);
@@ -34,6 +34,8 @@ int main(int argc, char **argv) {
     double *csrVal;
 
     readMatrix(filename, m, n, nnz, csrRowPtr, csrColIdx, csrVal);
+    
+    // Launch of the various algorithms 
     serialAlgo(m, n, nnz, csrRowPtr, csrColIdx, csrVal);
     cout << endl;
     nvidiaAlgo1(m, n, nnz, csrRowPtr, csrColIdx, csrVal);
@@ -43,7 +45,7 @@ int main(int argc, char **argv) {
     scanTrans(m, n, nnz, csrRowPtr, csrColIdx, csrVal);
     cout << endl;
 
-    // Cleaner
+    // Cleaning
     free(csrRowPtr); 
     free(csrColIdx); 
     free(csrVal);
