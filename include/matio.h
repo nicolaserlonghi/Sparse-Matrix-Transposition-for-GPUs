@@ -22,7 +22,7 @@ template<class valT>
 int read_mtx_mat(int &m, int &n, int &nnzA, int *&csrRowPtrA, int *&csrColIdxA, valT *&csrValA, char *filename)
 {
     int ret_code;
-    MM_typecode matcode; // Array di char [4]
+    MM_typecode matcode;
     FILE *f;
 
     int nnzA_mtx_report;
@@ -56,11 +56,6 @@ int read_mtx_mat(int &m, int &n, int &nnzA, int *&csrRowPtrA, int *&csrColIdxA, 
     if ( mm_is_symmetric( matcode ) || mm_is_hermitian( matcode ) )
     {
         isSymmetric = 1;
-        //cout << "symmetric = true" << endl;
-    }
-    else
-    {
-        //cout << "symmetric = false" << endl;
     }
 
     int *csrRowPtrA_counter = (int *)malloc((m+1) * sizeof(int));
