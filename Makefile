@@ -4,7 +4,7 @@ OBJ := $(SRC:src/%.cu=build/%.o)
 CXX := g++
 NVCC := nvcc
 # Qui non serve -lcusparse
-CXXFLAGS = -std=c++11 -w -O3 -arch=sm_62
+CXXFLAGS = -std=c++11 -w #-O3 -arch=sm_62
 NVCCFAGS = -lcusparse
 CFLAGS := -I include/ -c
 

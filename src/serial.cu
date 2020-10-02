@@ -4,7 +4,7 @@
 
 using namespace timer;
 
-int serial(
+float serial(
     int     m,
     int     n,
     int     nnz,
@@ -44,5 +44,5 @@ int serial(
 
     free(curr);
 
-    return 0;
+    return TM_host.duration(); 
 }

@@ -27,7 +27,7 @@ printf "#\t\t\t\t\t\t\t\t\t\t\t#\n"
 printf "#\t\t\t\tEsecuzione del programma\t\t\t\t#\n"
 printf "#\t\t\t\t\t\t\t\t\t\t\t#\n"
 printf "#########################################################################################\n"
-cd testFiles
+cd scanTransTest
 while read line;
 do    
     ../bin/sparse_matrix_transpose $line 

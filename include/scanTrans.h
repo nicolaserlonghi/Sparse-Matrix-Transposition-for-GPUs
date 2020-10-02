@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-void scanTrans(
+float scanTrans(
     int     m,
     int     n,
     int     nnz,

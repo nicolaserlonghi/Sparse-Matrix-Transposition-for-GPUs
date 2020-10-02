@@ -5,7 +5,7 @@
 
 using namespace timer;
 
-int nvidia(
+float nvidia(
     int     m,
     int     n,
     int     nnz,
@@ -23,7 +23,7 @@ int nvidia(
     double reqMem = (nnz * sizeof(int)) * 2 + (nnz * sizeof(double)) * 2 + (m+1) * sizeof(int) + (n+1) * sizeof(int);
     double nvidiaFreeMemory = getSizeOfNvidiaFreeMemory();    
     if ( nvidiaFreeMemory < reqMem) {
-        std::cout << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
+        std::cout << std::setprecision(0) << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
         return -1;
     }
         
@@ -77,7 +77,7 @@ int nvidia(
                                 );
 
     reqMem = reqMem + static_cast<double>(P_bufferSize);
-    std::cout << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
+    std::cout << std::setprecision(0) << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
     if ( nvidiaFreeMemory < reqMem) {
         SAFE_CALL(cudaFree(d_csrRowPtr));
         SAFE_CALL(cudaFree(d_csrColIdx));
@@ -129,11 +129,11 @@ int nvidia(
     SAFE_CALL(cudaFree(d_cscRowIdx));
     SAFE_CALL(cudaFree(d_cscVal));
 
-    return 0;
+    return TM_device.duration(); 
 
 }
 
-int nvidia2(
+float nvidia2(
     int     m,
     int     n,
     int     nnz,
@@ -151,7 +151,7 @@ int nvidia2(
     double reqMem = (nnz * sizeof(int)) * 2 + (nnz * sizeof(double)) * 2 + (m+1) * sizeof(int) + (n+1) * sizeof(int);
     double nvidiaFreeMemory = getSizeOfNvidiaFreeMemory();    
     if ( nvidiaFreeMemory < reqMem) {
-        std::cout << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
+        std::cout << std::setprecision(0) << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
         return -1;
     }
         
@@ -205,7 +205,7 @@ int nvidia2(
                                 );
 
     reqMem = reqMem + static_cast<double>(P_bufferSize);
-    std::cout << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
+    std::cout << std::setprecision(0) << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << std::endl;
     if ( nvidiaFreeMemory < reqMem) {
         SAFE_CALL(cudaFree(d_csrRowPtr));
         SAFE_CALL(cudaFree(d_csrColIdx));
@@ -256,6 +256,6 @@ int nvidia2(
     SAFE_CALL(cudaFree(d_cscRowIdx));
     SAFE_CALL(cudaFree(d_cscVal));
 
-    return 0;
+    return TM_device.duration(); 
 
 }

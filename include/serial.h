@@ -15,7 +15,7 @@
  * @param: cscRowIdx: array di dimensione nnz contenente l'indice di riga di ogni elemento diverso da zero della matrice trasposta
  * @param: cscVal: array di dimensione nnz contenente gli elementi diversi da zero della matrice trasposta
  */
-int serial(
+float serial(
     int     m,
     int     n,
     int     nnz,

@@ -1,11 +1,11 @@
 import os
 import sys
-import commands
+import subprocess
 import ntpath
 
 def excuteCmdAndPrintOutput(cmd):
-    result = commands.getoutput(cmd)
-    print result
+    result = subprocess.getoutput(cmd)
+    print(result + "\n")
     return result
 
 def printCommentWithHeader(text):
@@ -42,12 +42,26 @@ def parseResultAndSaveToFile(resultFile, result, matrixName):
     m = getTextAfterKey(result, "m: ")
     n = getTextAfterKey(result, "n: ")
     nnz = getTextAfterKey(result, "nnz: ")
-    serialTime = getTextAfterKey(result, "Serial Sparse Matrix Transpostion:")
-    nvidiaTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO1:")
-    nvidiaTimeAlgo2 = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO2:")
+    # nvidiaTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO1:")
+    # nvidiaSpeedup = getTextAfterKey(result, "ALGO1 speedup:")
+    # nvidiaTimeAlgo2 = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO2:")
+    # nvidia2Speedup = getTextAfterKey(result, "ALGO2 speedup:")
+    # scanTransCooperativeTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ScanTrans Cooperative:")
+    # scanTransCooperativeSpeedup = getTextAfterKey(result, "ScanTrans Cooperative speedup:")
+    # wrongCooperativeResult = getTextAfterKey(result, "ScanTrans Cooperative wrong: ")
+    # scanTransRowRowTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ScanTrans Row-Row:")
+    # scanTransRowRowSpeedup = getTextAfterKey(result, "ScanTrans Row-Row speedup:")
+    # wrongRowRowResult = getTextAfterKey(result, "ScanTrans Row-Row wrong: ")
+    scanTransTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ScanTrans:")
+    scanTransSpeedup = getTextAfterKey(result, "ScanTrans speedup:")
+    wrongResult = getTextAfterKey(result, "ScanTrans wrong: ")
+    scanSpeedTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ScanSpeed:")
+    scanSpeedSpeedup = getTextAfterKey(result, "ScanSpeed speedup:")
+    wrongSpeedResult = getTextAfterKey(result, "ScanSpeed wrong: ")
     fileLine = matrixName + "; " + matrixType + "; " +  \
                     m + "; " + n + "; " + nnz + "; " + \
-                    serialTime + "; " + nvidiaTime + "; " + nvidiaTimeAlgo2 + "\n"
+                    scanTransTime + "; " + scanTransSpeedup + "; " + wrongResult + "; " + \
+                    scanSpeedTime + "; " + scanSpeedSpeedup + "; " + wrongSpeedResult + "\n"
     resultFile.write(fileLine)
 
 def executeCommandOnFile(file, path=''):
@@ -58,12 +72,13 @@ def executeCommandOnFile(file, path=''):
         print("\n#########################################################################################\n")
         return result
     else:
-        print "ERROR: " + str(file) + " is not a matrix."
+        print("ERROR: " + str(file) + " is not a matrix.\n")
+
 
 def startTest(paths):
     # save result file
     resultFile = open("results.csv","w")
-    resultFile.write("matrix; type; m; n; nnz; serial; nvidia; nvidiaAlgo2\n")
+    resultFile.write("matrix; type; m; n; nnz; scanTrans; speedup; wrong; scanSpeed; speedup; wrong\n")
     for path in paths:
         if(os.path.isfile(path)):
             file = ntpath.basename(path)
@@ -74,7 +89,7 @@ def startTest(paths):
                 result = executeCommandOnFile(file, path)
                 parseResultAndSaveToFile(resultFile, result, file)
         else:
-            print "You have to pass a path of dir or file"
+            print("You have to pass a path of dir or file \n")
     resultFile.write("\n")
     resultFile.close()
 

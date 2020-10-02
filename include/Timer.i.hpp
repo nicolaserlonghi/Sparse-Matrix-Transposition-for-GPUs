@@ -132,7 +132,7 @@ void TimerBase<type, ChronoPrecision>::print(const std::string& str)    //NOLINT
                                              const noexcept {
     xlib::IosFlagSaver tmp;
     std::cout << _default_color
-              << std::fixed << std::setprecision(_decimals)
+              << std::fixed << std::setprecision(10)
               << std::right << std::setw(_space - 2) << str << "  "
               << duration() << ChronoPrecision()
               << xlib::Color::FG_DEFAULT << std::endl;
@@ -144,7 +144,7 @@ void TimerBase<type, ChronoPrecision>::printAll(const std::string& str) //NOLINT
     xlib::IosFlagSaver tmp;
     std::cout << _default_color
               << std::right << std::setw(_space - 2) << str << ":"
-              << std::fixed << std::setprecision(_decimals)
+              << std::fixed << std::setprecision(10)
               << "\n  min: " << min()           << ChronoPrecision()
               << "\n  max: " << max()           << ChronoPrecision()
               << "\n  avg: " << average()       << ChronoPrecision()
@@ -247,7 +247,7 @@ void Timer<SYS, ChronoPrecision>::print(const std::string& str)  //NOLINT
     auto sys_time_ms = std::chrono::duration_cast<ChronoPrecision>(sys_time);
 
     std::cout << _default_color << std::setw(_space) << str
-              << std::fixed << std::setprecision(_decimals)
+              << std::fixed << std::setprecision(10)
               << "  Elapsed time: [user " << user_time_ms << ", system "
               << sys_time_ms << ", real "
               << wall_time_ms << ChronoPrecision() << "]"

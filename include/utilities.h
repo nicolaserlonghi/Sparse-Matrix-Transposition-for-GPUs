@@ -8,7 +8,7 @@
  * @param: m: la dimensione dell'array
  * @param: array: il puntatore all'array da stampare
  */
-void printArray(int m, double *array);
+void printArray(int m, int *array);
 
 
 /**
@@ -68,8 +68,8 @@ void clearTheBuffers(
  * @param: cscRowIdx: array di dimensione nnz contenente l'indice di riga di ogni elemento diverso da zero della matrice trasposta
  * @param: cscVal: array di dimensione nnz contenente gli elementi diversi da zero della matrice trasposta
  */
-int performTransposition(
-    int    (*f)(int, int, int, int*, int*, double*, int*, int*, double*),
+float performTransposition(
+    float    (*f)(int, int, int, int*, int*, double*, int*, int*, double*),
     int     m,
     int     n,
     int     nnz,

@@ -1,7 +1,7 @@
 #include <utilities.h>
 #include <matio.h>
 
-void printArray(int m, double *array) {
+void printArray(int m, int *array) {
     for(int i = 0; i < m; i++) {
         std::cout << array[i] << "\t";
     }
@@ -57,8 +57,8 @@ void clearTheBuffers(
     std::fill_n(cscColPtr, n+1, 0);
 }
 
-int performTransposition(
-    int    (*f)(int, int, int, int*, int*, double*, int*, int*, double*),
+float performTransposition(
+    float    (*f)(int, int, int, int*, int*, double*, int*, int*, double*),
     int     m,
     int     n,
     int     nnz,
@@ -80,7 +80,7 @@ int performTransposition(
                 );
 
     // Chiamata della funzione per la trasposizione
-    int result = (*f)(
+    float result = (*f)(
             m,
             n,
             nnz,
