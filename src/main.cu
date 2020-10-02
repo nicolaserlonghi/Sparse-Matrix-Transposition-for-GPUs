@@ -161,7 +161,7 @@ void scanTrans(int m, int n, int nnz, int *csrRowPtr, int *csrColIdx, double *cs
             n, 
             nnz
         );
-        cout << "wrong: " << isWrong << endl;
+        cout << "ScanTrans wrong: " << isWrong << endl;
         if(isWrong)
             exit(EXIT_FAILURE);
         else

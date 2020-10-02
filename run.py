@@ -42,6 +42,7 @@ def parseResultAndSaveToFile(resultFile, result, matrixName):
     m = getTextAfterKey(result, "m: ")
     n = getTextAfterKey(result, "n: ")
     nnz = getTextAfterKey(result, "nnz: ")
+    serialTime = getTextAfterKey(result, "Serial Sparse Matrix Transpostion: ")
     nvidiaTime = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO1:")
     nvidiaSpeedup = getTextAfterKey(result, "ALGO1 speedup:")
     nvidiaTimeAlgo2 = getTextAfterKey(result, "GPU Sparse Matrix Transpostion ALGO2:")
@@ -51,6 +52,9 @@ def parseResultAndSaveToFile(resultFile, result, matrixName):
     wrongResult = getTextAfterKey(result, "ScanTrans wrong: ")
     fileLine = matrixName + "; " + matrixType + "; " +  \
                     m + "; " + n + "; " + nnz + "; " + \
+                    serialTime + ";" + \
+                    nvidiaTime + ";" + nvidiaSpeedup + ";" + \
+                    nvidiaTimeAlgo2 + ";" + nvidia2Speedup + ";" + \
                     scanTransTime + "; " + scanTransSpeedup + "; " + wrongResult + "\n"
     resultFile.write(fileLine)
 
@@ -68,7 +72,7 @@ def executeCommandOnFile(file, path=''):
 def startTest(paths):
     # save result file
     resultFile = open("results.csv","w")
-    resultFile.write("matrix; type; m; n; nnz; scanTrans; speedup; wrong;\n")
+    resultFile.write("matrix; type; m; n; nnz; serial; nvidia; nvidia speedup; nvidia2; nvidia2 speedup; scanTrans; speedup; wrong;\n")
     for path in paths:
         if(os.path.isfile(path)):
             file = ntpath.basename(path)
