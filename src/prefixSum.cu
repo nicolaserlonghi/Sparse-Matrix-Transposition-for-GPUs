@@ -48,8 +48,8 @@ void prefixSum(int *d_input, int *d_cscColPtr, int numElements) {
 		err = cudaMalloc((void**) &d_SUMS_LEVEL1, blocksPerGridL1 * sizeof(int));
 		CUDA_ERROR(err, "Failed to allocate device vector d_SUMS_LEVEL1");
         
-        err = cudaMalloc((void**) &d_INCR_LEVEL1, size);
-        CUDA_ERROR(err, "Failed to allocate device vector d_INCR");
+		err = cudaMalloc((void**) &d_INCR_LEVEL1, size);
+		CUDA_ERROR(err, "Failed to allocate device vector d_INCR");
         
 		blockPrefixSum<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, d_SUMS_LEVEL1);
 		blockPrefixSum<<<blocksPerGridL2, NUM_THREADS>>>(d_SUMS_LEVEL1, d_INCR_LEVEL1, blocksPerGridL1, NULL);
