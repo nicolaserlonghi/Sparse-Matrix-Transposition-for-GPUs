@@ -5,20 +5,20 @@
 using namespace timer;
 
 float serial(
-    int     m,
-    int     n,
-    int     nnz,
-    int     *csrRowPtr,
-    int     *csrColIdx,
-    double  *csrVal,
-    int     *cscColPtr,
-    int     *cscRowIdx,
-    double  *cscVal
+    int m,
+    int n,
+    int nnz,
+    int *csrRowPtr,
+    int *csrColIdx,
+    double *csrVal,
+    int *cscColPtr,
+    int *cscRowIdx,
+    double *cscVal
 ) {
-
+    // Take time
     Timer<HOST> TM_host;
-
     TM_host.start();
+
     int *curr = new int[n]();
     for(int i = 0; i < m; i++) {
         for(int j = csrRowPtr[i]; j < csrRowPtr[i + 1]; j++) {
@@ -26,7 +26,7 @@ float serial(
         }
     }
     
-    // prefix sum
+    // Prefix sum
     for(int i = 1; i < n + 1; i++) {
         cscColPtr[i] += cscColPtr[i - 1];
     }
@@ -42,6 +42,7 @@ float serial(
     TM_host.stop();
     TM_host.print("Serial Sparse Matrix Transpostion: ");
 
+    // Cleaner
     free(curr);
 
     return TM_host.duration(); 

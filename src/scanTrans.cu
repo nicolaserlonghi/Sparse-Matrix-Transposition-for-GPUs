@@ -60,11 +60,9 @@ float scanTrans(
     double *cscVal
 ) {
     int biggest = m > n ? m : n;
-
     bool isMemoryNotEnough = checkIsMemoryNotEnough(n, m, nnz);
     if(isMemoryNotEnough)
         return -1;
-
     int gridSizeHistogram;
     int gridSizeVerticalScan;
     int gridSizeWriteBack;
@@ -83,114 +81,106 @@ float scanTrans(
 
     int *d_csrRowPtr;
     int *d_csrColIdx;
-    double *d_csrVal;
-   
     int *d_cscColPtr;
-    int *d_cscRowIdx;
-    double *d_cscVal;
-
     int *d_csrRowIdx;    
     int *d_intra;
     int *d_inter;
 
+    // Set memory to device
+    SAFE_CALL( cudaMalloc(&d_csrColIdx, nnz * sizeof(int)) ); 
+    SAFE_CALL( cudaMalloc(&d_cscColPtr, (n + 1) * sizeof(int)) ); 
+    SAFE_CALL( cudaMalloc(&d_csrRowPtr, (m + 1) * sizeof(int)) );
+    SAFE_CALL( cudaMalloc(&d_csrRowIdx, nnz * sizeof(int)) );
+    SAFE_CALL( cudaMalloc(&d_intra, nnz * sizeof(int)) );
+    SAFE_CALL( cudaMalloc(&d_inter, (biggest + 1) * n * sizeof(int)) );
+    SAFE_CALL( cudaMemcpy(d_csrColIdx, csrColIdx, nnz * sizeof(int), cudaMemcpyHostToDevice) );
+    SAFE_CALL( cudaMemcpy(d_csrRowPtr, csrRowPtr, (m + 1) * sizeof(int), cudaMemcpyHostToDevice) );
+    SAFE_CALL( cudaMemset(d_inter, 0, (biggest + 1) * n * sizeof(int)) );
 
-    // questi ci serono ovunque
-    cudaMalloc(&d_csrColIdx, nnz     * sizeof(int));    
-    cudaMemcpy(d_csrColIdx, csrColIdx, nnz     * sizeof(int),    cudaMemcpyHostToDevice);
-    cudaMalloc(&d_cscColPtr, (n + 1) * sizeof(int));    
-    
-    // questi ci servono nel primo kernel 
-    cudaMalloc(&d_csrRowPtr, (m + 1) * sizeof(int));
-    cudaMemcpy(d_csrRowPtr, csrRowPtr, (m + 1) * sizeof(int),    cudaMemcpyHostToDevice);
-    cudaMalloc(&d_csrRowIdx, nnz                * sizeof(int));
-    cudaMalloc(&d_intra,     nnz                * sizeof(int));
-    cudaMalloc(&d_inter,     (biggest + 1) * n * sizeof(int));
-    cudaMemset(d_inter,     0, (biggest + 1) * n   * sizeof(int));
+///////////////////////// From here start computation  /////////////////////////
 
-
-
-    // From here start cuda computation
     Timer<DEVICE> TM_device;
     TM_device.start();
     histogram <<<gridSizeHistogram, blockSizeHistogram>>>(m, n, nnz, d_csrRowPtr, d_csrColIdx, d_cscColPtr, d_csrRowIdx, d_intra, d_inter);
-    cudaDeviceSynchronize();
     CHECK_CUDA_ERROR
-
     // Cleaning
-    cudaFree(d_csrRowPtr);
+    SAFE_CALL( cudaFree(d_csrRowPtr) );
 
     verticalScan <<<gridSizeVerticalScan, blockSizeVerticalScan>>>(m, n, nnz, d_csrColIdx, d_cscColPtr, d_csrRowIdx, d_intra, d_inter);
-    cudaDeviceSynchronize();
     CHECK_CUDA_ERROR
 
-    int clean = manageMemoryForScan(n + 1);
+    // Manage memory for prefixSum
+    int haveToclean = manageMemoryForPrefixSum(n + 1);
     int *intra;
     int *csrRowIdx;
-    if(clean == 0) {
+    if(haveToclean == 0) {
         intra = (int *) malloc(nnz * sizeof(int));
-        cudaMemcpy(intra, d_intra, (nnz) * sizeof(int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(csrColIdx, d_csrColIdx, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+        SAFE_CALL( cudaMemcpy(intra, d_intra, (nnz) * sizeof(int), cudaMemcpyDeviceToHost) );
+        SAFE_CALL( cudaMemcpy(csrColIdx, d_csrColIdx, nnz * sizeof(int), cudaMemcpyDeviceToHost) );
         csrRowIdx  = (int *) malloc(nnz * sizeof(int));
-        cudaMemcpy(csrRowIdx, d_csrRowIdx, nnz * sizeof(int), cudaMemcpyDeviceToHost);
+        SAFE_CALL( cudaMemcpy(csrRowIdx, d_csrRowIdx, nnz * sizeof(int), cudaMemcpyDeviceToHost) );
         // Cleaning device
-        cudaFree(d_intra);
-        cudaFree(d_csrColIdx);
-        cudaFree(d_csrRowIdx);
+        SAFE_CALL( cudaFree(d_intra) );
+        SAFE_CALL( cudaFree(d_csrColIdx) );
+        SAFE_CALL( cudaFree(d_csrRowIdx) );
     }
     
-    BCAO_fullPrescan(d_inter + (n * biggest), d_cscColPtr, n + 1);
+    prefixSum(d_inter + (n * biggest), d_cscColPtr, n + 1);
     
-    if(clean == 0) {
-        cudaMalloc(&d_intra, nnz * sizeof(int));
-        cudaMalloc(&d_csrColIdx, nnz * sizeof(int));    
-        cudaMalloc(&d_csrRowIdx, nnz * sizeof(int));
-        cudaMemcpy(d_intra, intra, nnz * sizeof(int), cudaMemcpyHostToDevice);
-        cudaMemcpy(d_csrColIdx, csrColIdx, nnz * sizeof(int), cudaMemcpyHostToDevice);
-        cudaMemcpy(d_csrRowIdx, csrRowIdx, nnz * sizeof(int), cudaMemcpyHostToDevice);
+    // Cleaning memory after prefixSum
+    if(haveToclean == 0) {
+        SAFE_CALL( cudaMalloc(&d_intra, nnz * sizeof(int)) );
+        SAFE_CALL( cudaMalloc(&d_csrColIdx, nnz * sizeof(int)) );
+        SAFE_CALL( cudaMalloc(&d_csrRowIdx, nnz * sizeof(int)) );
+        SAFE_CALL( cudaMemcpy(d_intra, intra, nnz * sizeof(int), cudaMemcpyHostToDevice) );
+        SAFE_CALL( cudaMemcpy(d_csrColIdx, csrColIdx, nnz * sizeof(int), cudaMemcpyHostToDevice) );
+        SAFE_CALL( cudaMemcpy(d_csrRowIdx, csrRowIdx, nnz * sizeof(int), cudaMemcpyHostToDevice) );
         // Cleaning host
         free(intra);
         free(csrRowIdx);
     }
 
-    // questi ci servono nell'ultimo
-    cudaMalloc(&d_csrVal,    nnz     * sizeof(double));
-    cudaMemcpy(d_csrVal,    csrVal,    nnz     * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMalloc(&d_cscRowIdx, nnz     * sizeof(int));
-    cudaMalloc(&d_cscVal,    nnz     * sizeof(double)); 
+    // Set device for writeBack computation
+    double *d_csrVal;
+    double *d_cscVal;
+    int *d_cscRowIdx;
+    SAFE_CALL( cudaMalloc(&d_csrVal, nnz * sizeof(double)) );
+    SAFE_CALL( cudaMalloc(&d_cscVal, nnz * sizeof(double)) ); 
+    SAFE_CALL( cudaMalloc(&d_cscRowIdx, nnz * sizeof(int)) );
+    SAFE_CALL( cudaMemcpy(d_csrVal, csrVal, nnz * sizeof(double), cudaMemcpyHostToDevice) );
     
     writeBack<<<gridSizeWriteBack, blockSizeWriteBack>>>(m, n, nnz, d_csrColIdx, d_csrVal, d_cscColPtr, d_cscRowIdx, d_cscVal, d_csrRowIdx, d_intra, d_inter);
-    cudaDeviceSynchronize();
+    CHECK_CUDA_ERROR
 
+    // Take time
     TM_device.stop();
     TM_device.print("GPU Sparse Matrix Transpostion ScanTrans: ");    
-  
     // Copy results
-    cudaMemcpy(cscColPtr, d_cscColPtr, (n+1) * sizeof(int),  cudaMemcpyDeviceToHost);
-    cudaMemcpy(cscRowIdx, d_cscRowIdx, nnz * sizeof(int),    cudaMemcpyDeviceToHost);
-    cudaMemcpy(cscVal,    d_cscVal,    nnz * sizeof(double), cudaMemcpyDeviceToHost);
-
+    SAFE_CALL( cudaMemcpy(cscColPtr, d_cscColPtr, (n+1) * sizeof(int), cudaMemcpyDeviceToHost) );
+    SAFE_CALL( cudaMemcpy(cscRowIdx, d_cscRowIdx, nnz * sizeof(int), cudaMemcpyDeviceToHost) );
+    SAFE_CALL( cudaMemcpy(cscVal, d_cscVal, nnz * sizeof(double), cudaMemcpyDeviceToHost) );
     // Cleaning 
-    cudaFree(d_csrColIdx);
-    cudaFree(d_csrVal);
-    cudaFree(d_cscColPtr);
-    cudaFree(d_cscRowIdx);
-    cudaFree(d_cscVal);
-    cudaFree(d_csrRowIdx);
-    cudaFree(d_intra);
-    cudaFree(d_inter);
+    SAFE_CALL( cudaFree(d_csrColIdx) );
+    SAFE_CALL( cudaFree(d_csrVal) );
+    SAFE_CALL( cudaFree(d_cscColPtr) );
+    SAFE_CALL( cudaFree(d_cscRowIdx) );
+    SAFE_CALL( cudaFree(d_cscVal) );
+    SAFE_CALL( cudaFree(d_csrRowIdx) );
+    SAFE_CALL( cudaFree(d_intra) );
+    SAFE_CALL( cudaFree(d_inter) );
 
     return TM_device.duration(); 
 }
 
 bool checkIsMemoryNotEnough(int n, int m, int nnz) {
     int biggest = m > n ? m : n;
-    unsigned long long int reqMem = (nnz * sizeof(int)) * 4 + (nnz * sizeof(double)) * 2 + (biggest + 1) * sizeof(int);
     double nvidiaFreeMemory = getSizeOfNvidiaFreeMemory();
+    unsigned long long int reqMem = 
+        (nnz * sizeof(int)) * 4 + (nnz * sizeof(double)) * 2 + (biggest + 1) * sizeof(int);
     unsigned long long int actualFreeMem = nvidiaFreeMemory - reqMem;
-    std::cout << std::setprecision(0) << "reqMem: " << reqMem << " free memory: " << nvidiaFreeMemory << " actual: " << actualFreeMem << std::endl;
-    unsigned long long int altro = (unsigned long long int)((unsigned long long int)(biggest + 1) * (unsigned long long int)n) * sizeof(int);
-    std::cout << std::setprecision(0) << "altro: " << altro << " free memory: " << actualFreeMem << std::endl;
-    if ( actualFreeMem < altro) {        
+    unsigned long long int interDimension = (unsigned long long int)(
+        (unsigned long long int)(biggest + 1) * (unsigned long long int)n) * sizeof(int);
+    if (actualFreeMem < interDimension) {        
         return true;
     }
     return false;

@@ -22,23 +22,23 @@ char* detectFile(int argc, char* argv) {
 }
 
 void readMatrix(
-    char    *filename,
-    int     &m,
-    int     &n,
-    int     &nnz,
-    int     *&csrRowPtr,
-    int     *&csrColIdx,
-    double  *&csrVal
+    char *filename,
+    int &m,
+    int &n,
+    int &nnz,
+    int *&csrRowPtr,
+    int *&csrColIdx,
+    double *&csrVal
 ) {
     int retCode = read_mtx_mat(
-                                m,
-                                n,
-                                nnz,
-                                csrRowPtr,
-                                csrColIdx,
-                                csrVal,
-                                filename
-                            );
+        m,
+        n,
+        nnz,
+        csrRowPtr,
+        csrColIdx,
+        csrVal,
+        filename
+    );
     if(retCode != 0) {
         std::cerr << "Failed to read the matrix from " << filename << "!\n";
         std::exit(EXIT_FAILURE);
@@ -46,11 +46,11 @@ void readMatrix(
 }
 
 void clearTheBuffers(
-    int     n,
-    int     nnz,
-    int     *cscRowIdx,
-    double  *cscVal,
-    int     *cscColPtr
+    int n,
+    int nnz,
+    int *cscRowIdx,
+    double *cscVal,
+    int *cscColPtr
 ) {
     std::fill_n(cscRowIdx, nnz, 0);
     std::fill_n(cscVal, nnz, 0);
@@ -58,39 +58,38 @@ void clearTheBuffers(
 }
 
 float performTransposition(
-    float    (*f)(int, int, int, int*, int*, double*, int*, int*, double*),
-    int     m,
-    int     n,
-    int     nnz,
-    int     *csrRowPtr,
-    int     *csrColIdx,
-    double  *csrVal,
-    int     *cscColPtr,
-    int     *cscRowIdx,
-    double  *cscVal
+    float (*f)(int, int, int, int*, int*, double*, int*, int*, double*),
+    int m,
+    int n,
+    int nnz,
+    int *csrRowPtr,
+    int *csrColIdx,
+    double *csrVal,
+    int *cscColPtr,
+    int *cscRowIdx,
+    double *cscVal
 ) {
-
-    // Pulizia dei buffer
+    // Cleanin buffers
     clearTheBuffers(
-                    n,
-                    nnz,
-                    cscRowIdx,
-                    cscVal,
-                    cscColPtr
-                );
+        n,
+        nnz,
+        cscRowIdx,
+        cscVal,
+        cscColPtr
+    );
 
-    // Chiamata della funzione per la trasposizione
+    // Call function
     float result = (*f)(
-            m,
-            n,
-            nnz,
-            csrRowPtr,
-            csrColIdx,
-            csrVal,
-            cscColPtr,
-            cscRowIdx,
-            cscVal
-        );
+        m,
+        n,
+        nnz,
+        csrRowPtr,
+        csrColIdx,
+        csrVal,
+        cscColPtr,
+        cscRowIdx,
+        cscVal
+    );
     return result;
 }
 

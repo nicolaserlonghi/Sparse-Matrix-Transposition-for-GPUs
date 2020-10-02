@@ -72,7 +72,7 @@ def executeCommandOnFile(file, path=''):
 def startTest(paths):
     # save result file
     resultFile = open("results.csv","w")
-    resultFile.write("matrix; type; m; n; nnz; serial; nvidia; nvidia speedup; nvidia2; nvidia2 speedup; scanTrans; speedup; wrong;\n")
+    resultFile.write("matrix; type; m; n; nnz; serial; nvidia; nvidia speedup; nvidia2; nvidia2 speedup; scanTrans; speedup; wrong\n")
     for path in paths:
         if(os.path.isfile(path)):
             file = ntpath.basename(path)

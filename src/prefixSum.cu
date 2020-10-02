@@ -7,11 +7,11 @@ const int NUM_THREADS = 128;
 __global__
 void uniformAdd(int *outputArray, int numElements, int *INCR);
 __global__
-void BCAO_blockPrescan(int *g_idata, int *g_odata, int n, int *SUM);
+void blockPrefixSum(int *g_idata, int *g_odata, int n, int *SUM);
 
 
 
-int manageMemoryForScan(int numElements) {
+int manageMemoryForPrefixSum(int numElements) {
     int blocksPerGridL1 = 1 + (numElements - 1) / (NUM_THREADS * 2);
     int blocksPerGridL2 = 1 + blocksPerGridL1 / (NUM_THREADS * 2);
     int blocksPerGridL3 = 1 + blocksPerGridL2 / (NUM_THREADS * 2);
@@ -30,7 +30,7 @@ int manageMemoryForScan(int numElements) {
 }
 
 
-void BCAO_fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
+void prefixSum(int *d_input, int *d_cscColPtr, int numElements) {
 	cudaError_t err = cudaSuccess;
     size_t size = numElements * sizeof(int);
 	int *d_SUMS_LEVEL1 = NULL;
@@ -43,7 +43,7 @@ void BCAO_fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
 	int blocksPerGridL2 = 1 + blocksPerGridL1 / (NUM_THREADS * 2);
     int blocksPerGridL3 = 1 + blocksPerGridL2 / (NUM_THREADS * 2);
 	if(blocksPerGridL1 == 1) {
-	    BCAO_blockPrescan<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, NULL);
+	    blockPrefixSum<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, NULL);
 	} else if (blocksPerGridL2 == 1) {
 		err = cudaMalloc((void**) &d_SUMS_LEVEL1, blocksPerGridL1 * sizeof(int));
 		CUDA_ERROR(err, "Failed to allocate device vector d_SUMS_LEVEL1");
@@ -51,8 +51,8 @@ void BCAO_fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
         err = cudaMalloc((void**) &d_INCR_LEVEL1, size);
         CUDA_ERROR(err, "Failed to allocate device vector d_INCR");
         
-		BCAO_blockPrescan<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, d_SUMS_LEVEL1);
-		BCAO_blockPrescan<<<blocksPerGridL2, NUM_THREADS>>>(d_SUMS_LEVEL1, d_INCR_LEVEL1, blocksPerGridL1, NULL);
+		blockPrefixSum<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, d_SUMS_LEVEL1);
+		blockPrefixSum<<<blocksPerGridL2, NUM_THREADS>>>(d_SUMS_LEVEL1, d_INCR_LEVEL1, blocksPerGridL1, NULL);
 		uniformAdd<<<blocksPerGridL1, NUM_THREADS>>>(d_cscColPtr, numElements, d_INCR_LEVEL1);
 		cudaDeviceSynchronize();
 	} else if (blocksPerGridL3 == 1) {
@@ -68,9 +68,9 @@ void BCAO_fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
 		err = cudaMalloc((void**) &d_INCR_LEVEL2, size);
 		CUDA_ERROR(err, "Failed to allocate device vector d_INCR");
 
-		BCAO_blockPrescan<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, d_SUMS_LEVEL1);
-		BCAO_blockPrescan<<<blocksPerGridL2, NUM_THREADS>>>(d_SUMS_LEVEL1, d_INCR_LEVEL1, blocksPerGridL1, d_SUMS_LEVEL2);
-		BCAO_blockPrescan<<<blocksPerGridL3, NUM_THREADS>>>(d_SUMS_LEVEL2, d_INCR_LEVEL2, blocksPerGridL2, NULL);
+		blockPrefixSum<<<blocksPerGridL1, NUM_THREADS>>>(d_input, d_cscColPtr, numElements, d_SUMS_LEVEL1);
+		blockPrefixSum<<<blocksPerGridL2, NUM_THREADS>>>(d_SUMS_LEVEL1, d_INCR_LEVEL1, blocksPerGridL1, d_SUMS_LEVEL2);
+		blockPrefixSum<<<blocksPerGridL3, NUM_THREADS>>>(d_SUMS_LEVEL2, d_INCR_LEVEL2, blocksPerGridL2, NULL);
 		uniformAdd<<<blocksPerGridL2, NUM_THREADS>>>(d_INCR_LEVEL1, blocksPerGridL1, d_INCR_LEVEL2);
 		uniformAdd<<<blocksPerGridL1, NUM_THREADS>>>(d_cscColPtr, numElements, d_INCR_LEVEL1);
 		cudaDeviceSynchronize();
@@ -97,7 +97,7 @@ void BCAO_fullPrescan(int *d_input, int *d_cscColPtr, int numElements) {
 
 
 __global__
-void BCAO_blockPrescan(int *g_idata, int *g_odata, int n, int *SUM) {
+void blockPrefixSum(int *g_idata, int *g_odata, int n, int *SUM) {
 	__shared__ int temp[NUM_THREADS * 2 + (NUM_THREADS)];
 	int thid = threadIdx.x;
 	int offset = 1;

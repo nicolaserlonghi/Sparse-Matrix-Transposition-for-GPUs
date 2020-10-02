@@ -24,7 +24,7 @@
 }
 
 // Function prototypes
-void BCAO_fullPrescan(int *d_input, int *d_cscColPtr, int numElements);
-int manageMemoryForScan(int numElements);
+void prefixSum(int *d_input, int *d_cscColPtr, int numElements);
+int manageMemoryForPrefixSum(int numElements);
 
 #endif
