@@ -6,7 +6,6 @@
 #include <nvidia.h>
 #include <scanTransCooperative.h>
 #include <scanTransRowRow.h>
-#include <scanTrans.h>
 #include <scanSpeed.h>
 
 int checkResults(int m, int *arrayA, int *arrayB);
