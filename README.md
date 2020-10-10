@@ -6,10 +6,16 @@ The build process tool of the project is Makefile. The following are the steps t
 
 1. Clone or download this repository and move to the folder project.
 
-2. Download test files.
+2. Download test files and unarchive them.
 
 ```
 wget -i testFilesLink.txt -P testFiles
+mv unzip.sh testFiles/
+cd testFiles/
+chmod +x unzip.sh
+./unzip.sh
+mv unzip.sh ..
+cd ..
 ```
 
 3. If your device have python3 installed do this step and you have done otherwise go direct to the step four.
